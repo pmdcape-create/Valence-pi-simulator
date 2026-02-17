@@ -7,6 +7,7 @@ from fpdf import FPDF
 import tempfile
 import os
 
+# Internal engine imports - assuming these remain in your local repository
 from radial_engine.config import (
     N_CORE, N_SURFACE, BASELINE_CORE, BASELINE_SURFACE, PROPAGATION_DAMPING
 )
@@ -22,58 +23,49 @@ st.set_page_config(
 )
 
 # ==========================================
-# RESEARCH-ALIGNED DEFAULT VALUES
-# ==========================================
-DEFAULT_CORE_VAL = 0.70
-DEFAULT_SURFACE_AVG = 0.65
-
-CUSTOM_DEFAULTS = {
-    "core_0": 0.70, "core_1": 0.70, "core_2": 0.70, "core_3": 0.70, 
-    "core_4": 0.70, "core_5": 0.70, "core_6": 0.70,
-    "surface_4": 0.80,  # S12: Knowledge (Anchor)
-    "surface_7": 0.40,  # S15: Strategy (Focus)
-    "surface_10": 0.40, # S18: Influence (Focus)
-}
-
-# ==========================================
-# LOAD STATE GUIDES
+# DATA LOADING (stateGuides.json)
 # ==========================================
 try:
-    with open("radial_engine/stateGuides.json", "r", encoding="utf-8") as f:
+    with open("stateGuides.json", "r", encoding="utf-8") as f:
         state_guides_data = json.load(f)["stateGuides"]
-except Exception:
+except Exception as e:
+    st.error(f"Error loading stateGuides.json: {e}")
     state_guides_data = []
 
 def get_state_guide(state_number):
+    """Retrieves the human-centric guide for a specific state index."""
     for guide in state_guides_data:
         if guide["state"] == state_number:
             return guide
     return None
 
 # ==========================================
-# SESSION STATE INIT
+# SESSION STATE & DEFAULTS
 # ==========================================
+# Research-aligned anchors from your profile
+CUSTOM_DEFAULTS = {
+    "surface_4": 0.80,  # S12: Knowledge (Anchor)
+    "surface_7": 0.40,  # S15: Strategy (Focus)
+    "surface_10": 0.40, # S18: Influence (Focus)
+}
+
 for i in range(N_CORE):
     key = f"core_{i}"
     if key not in st.session_state:
-        st.session_state[key] = CUSTOM_DEFAULTS.get(key, DEFAULT_CORE_VAL)
+        st.session_state[key] = 0.70  # Baseline Integrity
 
 for i in range(N_SURFACE):
     key = f"surface_{i}"
     if key not in st.session_state:
-        st.session_state[key] = CUSTOM_DEFAULTS.get(key, DEFAULT_SURFACE_AVG)
+        st.session_state[key] = CUSTOM_DEFAULTS.get(key, 0.65)
 
 # ==========================================
-# TITLE
+# HEADER & SIDEBAR UI
 # ==========================================
-st.title("Valence-Pi Simulator")
-st.info(f"System loaded with Baseline Integrity ({DEFAULT_CORE_VAL}) and User Profile anchors.")
+st.title("Valence-Pi Structural Simulator")
+st.markdown("---")
 
-# ==========================================
-# SIDEBAR SETTINGS
-# ==========================================
 st.sidebar.header("System Dynamics")
-
 age_cat = st.sidebar.selectbox(
     "Subject Life Stage (Plasticity)",
     options=[
@@ -86,6 +78,7 @@ age_cat = st.sidebar.selectbox(
     index=2
 )
 
+# Map age to damping physics
 plasticity_map = {
     "Childhood (Birth – Age 9)": 0.90, 
     "Adolescence (Ages 9 – 32)": 0.60,
@@ -93,175 +86,119 @@ plasticity_map = {
     "Early Ageing (Ages 66 – 83)": 0.15,
     "Late Ageing (Age 83+)": 0.05
 }
-
 alpha = plasticity_map.get(age_cat, 0.30)
 effective_damping = PROPAGATION_DAMPING + (1.0 - PROPAGATION_DAMPING) * (1.0 - alpha)
 
 steps_input_val = st.sidebar.number_input("Simulation Steps", min_value=1, max_value=200, value=10)
 
 st.sidebar.markdown("---")
-st.sidebar.header("Simulation Mode")
-use_target = st.sidebar.radio("Mode", options=["Incremental adjustment", "Target states (user-defined)"], index=1)
-
-# Sliders
-st.sidebar.header("Core States (Backbone)")
-for i in range(N_CORE):
-    state_num = i + 1
-    guide = get_state_guide(state_num)
-    label = f"C{state_num} — {guide['polarity']}" if guide else f"Core {state_num}"
-    st.sidebar.slider(label, -1.0, 1.0, step=0.01, key=f"core_{i}")
-
-st.sidebar.header("Surface States (Circumference)")
-for i in range(N_SURFACE):
-    state_num = N_CORE + i + 1
-    guide = get_state_guide(state_num)
-    label = f"S{state_num} — {guide['polarity']}" if guide else f"Surface {state_num}"
-    st.sidebar.slider(label, -1.0, 1.0, step=0.01, key=f"surface_{i}")
-
-# --- INTENT TEXT AREA ---
-st.sidebar.markdown("---")
 st.sidebar.subheader("Simulation Intent")
 user_intent = st.sidebar.text_area(
-    "Describe your goal or the situation you are testing:",
-    placeholder="e.g., I want to test how C7 handles a radical shift in influence strategies...",
+    "Describe the situation or goal you are testing:",
+    placeholder="e.g., Increasing influence (S18) without relying on validated knowledge (S12)...",
     height=150
 )
 
-run_sim = st.sidebar.button("Run Simulation")
+st.sidebar.markdown("---")
+st.sidebar.header("Input States")
+for i in range(N_CORE):
+    guide = get_state_guide(i + 1)
+    label = f"C{i+1}: {guide['polarity'] if guide else 'Core'}"
+    st.sidebar.slider(label, -1.0, 1.0, step=0.01, key=f"core_{i}")
+
+for i in range(N_SURFACE):
+    guide = get_state_guide(N_CORE + i + 1)
+    label = f"S{N_CORE + i + 1}: {guide['polarity'] if guide else 'Surface'}"
+    st.sidebar.slider(label, -1.0, 1.0, step=0.01, key=f"surface_{i}")
+
+run_sim = st.sidebar.button("Run Realignment Simulation")
 
 # ==========================================
-# SIMULATION EXECUTION & RESULTS
+# EXECUTION & RESULTS
 # ==========================================
 if run_sim:
+    # 1. Capture User Inputs
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    adj_c = [i for i in range(N_CORE) if abs(t_core[i] - CUSTOM_DEFAULTS.get(f"core_{i}", DEFAULT_CORE_VAL)) > 0.001]
-    adj_s = [i for i in range(N_SURFACE) if abs(t_surface[i] - CUSTOM_DEFAULTS.get(f"surface_{i}", DEFAULT_SURFACE_AVG)) > 0.001]
-
-    if use_target == "Target states (user-defined)":
-        start_core, start_surface = np.array(BASELINE_CORE), np.array(BASELINE_SURFACE)
-    else:
-        start_core, start_surface = t_core, t_surface
-        t_core, t_surface = None, None
-
+    # 2. Run Engine
     history_core, history_surface = run_simulation(
-        initial_core=start_core, initial_surface=start_surface,
-        target_core=t_core, target_surface=t_surface,
-        steps=int(steps_input_val), damping=effective_damping
+        initial_core=BASELINE_CORE, 
+        initial_surface=BASELINE_SURFACE,
+        target_core=t_core, 
+        target_surface=t_surface,
+        steps=int(steps_input_val), 
+        damping=effective_damping
     )
 
-    final_core = history_core[-1, :]
-    final_surface = history_surface[-1, :]
+    # 3. Calculate Deltas
+    final_core, final_surface = history_core[-1, :], history_surface[-1, :]
+    all_final = np.concatenate([final_core, final_surface])
+    all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
+    deltas = all_final - all_initial
     labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
-    before_vals = list(start_core) + list(start_surface)
-    after_vals = list(final_core) + list(final_surface)
-    deltas = np.array(after_vals) - np.array(before_vals)
-    steps_range = np.arange(history_core.shape[0])
 
-    st.subheader(f"State Dynamics: {age_cat}")
-    fig1, ax1 = plt.subplots(figsize=(10, 5))
-    cmap = plt.get_cmap("tab20")
+    # 4. HUMAN-CENTRIC INTERPRETATION (The Inspector)
+    st.subheader("Human-Centric Interpretation: The System Dictate")
+    impact_indices = np.argsort(np.abs(deltas))[-3:][::-1] # Top 3 shifts
+    
+    cols = st.columns(3)
+    for i, idx in enumerate(impact_indices):
+        guide = get_state_guide(idx + 1)
+        with cols[i]:
+            st.metric(label=labels[idx], value=f"{all_final[idx]:.2f}", delta=f"{deltas[idx]:.3f}")
+            if guide:
+                st.write(f"**Mood:** {guide.get('mood_description', 'N/A')}")
+                st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
+                st.info(f"**Function:** {guide.get('physical_function', 'N/A')}")
+                st.caption(f"**Manifestation:** {guide.get('manifestation', 'N/A')}")
+
+    # 5. VISUAL ANALYSIS
+    st.markdown("---")
+    st.subheader("Field Stability & Trajectory")
+    
+    fig1, ax1 = plt.subplots(figsize=(10, 4))
     for i in range(N_CORE):
-        bold = i in adj_c
-        ax1.plot(steps_range, history_core[:, i], color=cmap(i % 20), lw=3.5 if bold else 1.0, alpha=1.0 if bold else 0.4, label=f"C{i+1}" + (" (TRIGGER)" if bold else ""))
+        ax1.plot(history_core[:, i], label=f"C{i+1}", alpha=0.7)
     for j in range(N_SURFACE):
-        bold = j in adj_s
-        ax1.plot(steps_range, history_surface[:, j], color=cmap((j+N_CORE)%20), lw=3.0 if bold else 0.8, alpha=1.0 if bold else 0.3, ls='-' if bold else '--', label=f"S{N_CORE+j+1}" + (" (TRIGGER)" if bold else ""))
-    ax1.legend(fontsize=7, bbox_to_anchor=(1.02, 1), loc='upper left')
+        ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+8}", alpha=0.5)
+    ax1.set_title("Temporal Path toward Instantiation")
     st.pyplot(fig1)
 
-    st.subheader("System Stability Index (Field Residue)")
-    stability_data = np.sum(np.abs(history_core - start_core), axis=1) + np.sum(np.abs(history_surface - start_surface), axis=1)
-    fig2, ax2 = plt.subplots(figsize=(10, 2))
-    ax2.plot(steps_range, stability_data, color="darkred", lw=2)
-    st.pyplot(fig2)
-
-    st.subheader("Structural Re-alignment: Final State Configuration")
-    x = np.arange(len(labels))
-    width = 0.35
-    fig3, ax3 = plt.subplots(figsize=(10, 4))
-    ax3.bar(x - width/2, before_vals, width, label='Initial (Baseline)', color='lightgrey')
-    after_colors = ['blue' if i < N_CORE and i in adj_c else 'green' if i >= N_CORE and (i-N_CORE) in adj_s else 'skyblue' if i < N_CORE else 'lightgreen' for i in range(len(labels))]
-    ax3.bar(x + width/2, after_vals, width, label='Final (Instantiated)', color=after_colors)
-    ax3.set_xticks(x)
-    ax3.set_xticklabels(labels, rotation=45, fontsize=8)
-    ax3.legend(fontsize=8)
-    ax3.axhline(0, color='black', linewidth=0.8)
-    st.pyplot(fig3)
-
-    st.divider()
-    st.subheader("Export Research Data")
-    safe_age_cat = age_cat.replace("–", "-") 
-    
+    # 6. PDF REPORT GENERATION
     pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Helvetica", 'B', 16)
-    pdf.cell(200, 10, txt="Valence-Pi Structural Alignment Report", ln=True, align='C')
+    pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True, align='C')
+    
     pdf.set_font("Helvetica", size=10)
     pdf.ln(5)
-    pdf.cell(200, 7, txt=f"Life Stage: {safe_age_cat}", ln=True)
-    pdf.cell(200, 7, txt=f"Simulation Steps: {steps_input_val} | Damping: {effective_damping:.4f}", ln=True)
-
-    max_delta_idx = np.argmax(np.abs(deltas))
-    max_delta_val = deltas[max_delta_idx]
-    max_delta_label = labels[max_delta_idx]
-    avg_delta = np.mean(np.abs(deltas))
-    system_instantiated = all(v >= 0.99 for v in after_vals)
-    total_field_residue = max(stability_data)
-    active_triggers = [labels[i] for i in adj_c] + [labels[i+N_CORE] for i in adj_s]
-
-    def add_plot_to_pdf(fig, title, y_pos):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-            fig.savefig(tmpfile.name, format='png', bbox_inches='tight', dpi=150)
-            pdf.set_font("Helvetica", 'I', 10)
-            if title: pdf.cell(200, 8, txt=title, ln=True)
-            pdf.image(tmpfile.name, x=10, y=None, w=180)
-            pdf.ln(5)
-        os.unlink(tmpfile.name)
-
-    pdf.add_page()
-    pdf.set_font("Helvetica", 'B', 14)
-    pdf.cell(200, 10, txt="Visual Field Analysis & Structural Insights", ln=True)
-    pdf.ln(5)
-    pdf.set_font("Helvetica", 'B', 11)
-    pdf.cell(200, 7, txt="1. State Dynamics (Temporal Path Interpretation)", ln=True)
-    pdf.set_font("Helvetica", size=10)
-    dynamics_text = (f"In this {safe_age_cat} simulation, the system achieved convergence over {steps_input_val} steps. "
-                     f"The trajectories of identity triggers ({', '.join(active_triggers)}) initiated a law-like re-alignment, "
-                     "pulling the entire 22-state field toward the target valence.")
-    pdf.multi_cell(0, 5, txt=dynamics_text)
-    add_plot_to_pdf(fig1, "", pdf.get_y())
-
+    pdf.multi_cell(0, 7, f"Life Stage: {age_cat}")
+    pdf.multi_cell(0, 7, f"Intent: {user_intent}")
     pdf.ln(10)
-    pdf.set_font("Helvetica", 'B', 11)
-    pdf.cell(200, 7, txt="2. System Stability & Field Residue", ln=True)
-    pdf.set_font("Helvetica", size=10)
-    stability_text = (f"The Stability Index recorded a peak field residue of {total_field_residue:.2f}. "
-                      "This represents the 'Awareness' or structural friction generated as the system "
-                      "resolved initial contradictions to accommodate your intentional triggers.")
-    pdf.multi_cell(0, 5, txt=stability_text)
-    add_plot_to_pdf(fig2, "", pdf.get_y())
 
-    pdf.add_page()
-    pdf.set_font("Helvetica", 'B', 11)
-    pdf.cell(200, 7, txt="3. The 'System Dictate' & Final Alignment", ln=True)
-    pdf.set_font("Helvetica", size=10)
-    status = "achieved total uniform instantiation (1.000)." if system_instantiated else "reached a partial equilibrium."
-    realignment_text = (f"The final configuration {status} The most radical induced shift occurred at {max_delta_label} "
-                        f"with a Delta of {max_delta_val:.3f}. On average, the field shifted by {avg_delta:.3f} units "
-                        "to maintain systemic integrity.")
-    pdf.multi_cell(0, 5, txt=realignment_text)
-    add_plot_to_pdf(fig3, "", pdf.get_y())
-
-    pdf.add_page()
     pdf.set_font("Helvetica", 'B', 12)
-    pdf.cell(200, 10, txt="Induced Delta Table (System Dictate)", ln=True)
-    pdf.set_font("Helvetica", size=8)
-    pdf.cell(40, 8, "State", 1); pdf.cell(40, 8, "Initial", 1); pdf.cell(40, 8, "Final", 1); pdf.cell(40, 8, "Delta", 1); pdf.ln()
-    for i in range(len(labels)):
-        pdf.cell(40, 7, labels[i], 1); pdf.cell(40, 7, f"{before_vals[i]:.3f}", 1); pdf.cell(40, 7, f"{after_vals[i]:.3f}", 1); pdf.cell(40, 7, f"{deltas[i]:.3f}", 1); pdf.ln()
+    pdf.cell(0, 10, "Top 3 Semantic Shifts (Actionable Guidance)", ln=True)
+    pdf.set_font("Helvetica", size=10)
+    
+    for idx in impact_indices:
+        guide = get_state_guide(idx + 1)
+        if guide:
+            pdf.set_font("Helvetica", 'B', 10)
+            pdf.cell(0, 8, f"{labels[idx]} - {guide['polarity']}", ln=True)
+            pdf.set_font("Helvetica", size=10)
+            pdf.multi_cell(0, 5, f"Emotional Cluster: {', '.join(guide['keywords'])}")
+            pdf.multi_cell(0, 5, f"Physical Function: {guide['physical_function']}")
+            pdf.multi_cell(0, 5, f"Instantiation Effect: {guide['instantiation_effect']}")
+            pdf.ln(4)
 
     pdf_bytes = pdf.output()
-    st.download_button(label="📥 Download Full Research Report", data=bytes(pdf_bytes), file_name=f"ValencePi_Full_Report_{safe_age_cat.replace(' ', '_')}.pdf", mime="application/pdf")
+    st.download_button(
+        label="📥 Download Research Guidance Report", 
+        data=bytes(pdf_bytes), 
+        file_name="ValencePi_Human_Report.pdf", 
+        mime="application/pdf"
+    )
+
+else:
+    st.info("Adjust the sliders in the sidebar and click 'Run Realignment Simulation' to view the semantic breakdown.")

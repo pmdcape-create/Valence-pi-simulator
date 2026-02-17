@@ -3,134 +3,222 @@
     {
       "state": 1,
       "polarity": "Existence / Non-Existence",
-      "effortGuide": "Initial recognition of being; minimal effort needed",
-      "valenceGuide": "Represents the fundamental sense of presence vs absence"
+      "mood_description": "The spark of 'I Am'",
+      "keywords": ["Awe", "Curiosity", "Existential wonder"],
+      "physical_collapse": "Residual Field / Activation Threshold",
+      "physical_function": "Determines whether the person is engaged",
+      "manifestation": "The person initializes baseline energy",
+      "instantiation_effect": "Sets starting energy density"
     },
     {
       "state": 2,
       "polarity": "Unity / Division",
-      "effortGuide": "Effort to integrate contrasting elements",
-      "valenceGuide": "Reflects harmony vs separation in relationships and thought"
+      "mood_description": "Holding duality",
+      "keywords": ["Peace", "Harmony", "Inner tension"],
+      "physical_collapse": "Coupled Oscillator / Coherence",
+      "physical_function": "Links or separates intrapersonally and interpersonally",
+      "manifestation": "Core senses coherence vs tension",
+      "instantiation_effect": "Establishes connection internally and other people"
     },
     {
       "state": 3,
       "polarity": "Potential / Kinetic",
-      "effortGuide": "Effort to move from ideas to action",
-      "valenceGuide": "Represents readiness to act vs latent potential"
+      "mood_description": "Growth / Creation",
+      "keywords": ["Excitement", "Anticipation", "Motivation"],
+      "physical_collapse": "physical and conciousness Engagement",
+      "physical_function": "Excitation / Collapse into internal energy",
+      "manifestation": "Movement, reaction, activation",
+      "instantiation_effect": "Energy exchange triggers action"
     },
     {
       "state": 4,
       "polarity": "Static / Dynamic",
-      "effortGuide": "Effort to maintain balance while initiating action",
-      "valenceGuide": "Stability vs motion; comfort with change vs rigidity"
+      "mood_description": "Stability / Action",
+      "keywords": ["Confidence", "Alertness", "Frustration"],
+      "physical_collapse": "Energy Stabilization / Transition",
+      "physical_function": "Determines rate of change",
+      "manifestation": "Stability or fluctuation in Core perception",
+      "instantiation_effect": "Physical stabilization or shift"
     },
     {
       "state": 5,
       "polarity": "Inclusion / Exclusion",
-      "effortGuide": "Effort to connect or set boundaries",
-      "valenceGuide": "Social integration vs isolation; relational belonging"
+      "mood_description": "Belonging / Boundaries",
+      "keywords": ["Acceptance", "Rejection", "Loneliness"],
+      "physical_collapse": "Binding Affinity / Repulsion",
+      "physical_function": "Attraction or repulsion of nodes",
+      "manifestation": "Sense of belonging or isolation",
+      "instantiation_effect": "Defines if a person/s can couple"
     },
     {
       "state": 6,
       "polarity": "Symmetry / Asymmetry",
-      "effortGuide": "Effort to align elements or adapt to imbalance",
-      "valenceGuide": "Order vs disorder; internal or external coherence"
+      "mood_description": "Alignment / Balance",
+      "keywords": ["Satisfaction", "Discomfort", "Calmness"],
+      "physical_collapse": "Angular Alignment / Orientation pattern",
+      "physical_function": "Directional coherence of patterns",
+      "manifestation": "Orientation and equilibrium in physical existence",
+      "instantiation_effect": "Determines angular momentum / pattern alignment"
     },
     {
       "state": 7,
       "polarity": "Coherence / Chaos",
-      "effortGuide": "Effort to create structure amidst confusion",
-      "valenceGuide": "Clarity of purpose vs disarray; mental focus"
+      "mood_description": "Direction / Focus",
+      "keywords": ["Determination", "Stress", "Clarity"],
+      "physical_collapse": "Phase Alignment / Entanglement",
+      "physical_function": "Global alignment of a person's phases",
+      "manifestation": "Perception of order or overwhelm",
+      "instantiation_effect": "Field-wide coherence; pattern consistency"
     },
     {
       "state": 8,
       "polarity": "Will / Submission",
-      "effortGuide": "Effort to assert or surrender control",
-      "valenceGuide": "Exercise of power vs yielding; agency vs compliance"
+      "mood_description": "Mastery / Yielding",
+      "keywords": ["Empowerment", "Fear", "Courage"],
+      "physical_collapse": "Potential Gradient / Compliance",
+      "physical_function": "Energy flow preference / yielding",
+      "manifestation": "Sense of agency vs surrender",
+      "instantiation_effect": "Sets dominant energy flow direction"
     },
     {
       "state": 9,
       "polarity": "Clarity / Obscurity",
-      "effortGuide": "Effort to perceive clearly or trust intuition",
-      "valenceGuide": "Mental transparency vs uncertainty; insight vs opacity"
+      "mood_description": "Insight / Intuition",
+      "keywords": ["Understanding", "Confusion", "Curiosity"],
+      "physical_collapse": "Signal-to-Noise Ratio / Entropy",
+      "physical_function": "Determines resolution vs randomness",
+      "manifestation": "Cognitive clarity or doubt",
+      "instantiation_effect": "Precision of physical interactions"
     },
     {
       "state": 10,
       "polarity": "Resonance / Dissonance",
-      "effortGuide": "Effort to align with environment or self",
-      "valenceGuide": "Emotional and energetic harmony vs conflict"
+      "mood_description": "Harmony / Vibration",
+      "keywords": ["Joy", "Irritation", "Inspiration"],
+      "physical_collapse": "Vibrational Coupling / Damping",
+      "physical_function": "Alignment or interference",
+      "manifestation": "Emotional and sensory resonance",
+      "instantiation_effect": "Synchronizes oscillatory components"
     },
     {
       "state": 11,
       "polarity": "Expansion / Contraction",
-      "effortGuide": "Effort to broaden scope or conserve energy",
-      "valenceGuide": "Growth, openness vs restriction, contraction"
+      "mood_description": "Growth / Limitation",
+      "keywords": ["Enthusiasm", "Anxiety", "Openness"],
+      "physical_collapse": "Volume / Energy Density Modulation",
+      "physical_function": "Spatial distribution",
+      "manifestation": "physical experiences expansion or restriction",
+      "instantiation_effect": "Physical expansion or compression"
     },
     {
       "state": 12,
       "polarity": "Knowledge / Ignorance",
-      "effortGuide": "Effort to learn or remain unaware",
-      "valenceGuide": "Awareness vs unawareness; information assimilation"
+      "mood_description": "Perspective / Understanding",
+      "keywords": ["Curiosity", "Doubt", "Surprise"],
+      "physical_collapse": "Potential Mapping / Latent Storage",
+      "physical_function": "Accessibility of internal energy",
+      "manifestation": "Insight, learning",
+      "instantiation_effect": "Guides storage and transmission of energy"
     },
     {
       "state": 13,
       "polarity": "Creation / Destruction",
-      "effortGuide": "Effort to build or dismantle",
-      "valenceGuide": "Constructive vs destructive tendencies; transformation"
+      "mood_description": "Renewal / Dissolution",
+      "keywords": ["Hope", "Grief", "Excitement"],
+      "physical_collapse": "Generation / Dissipation",
+      "physical_function": "Formation or dissolution of energy",
+      "manifestation": "Observable creation or decay",
+      "instantiation_effect": "Local creation or annihilation of patterns"
     },
     {
       "state": 14,
       "polarity": "Love / Aversion",
-      "effortGuide": "Effort to connect or disengage emotionally",
-      "valenceGuide": "Acceptance, care vs rejection, avoidance"
+      "mood_description": "Integration / Flow",
+      "keywords": ["Affection", "Jealousy", "Empathy"],
+      "physical_collapse": "Attraction or Repulsion Gradient",
+      "physical_function": "Coupling preference",
+      "manifestation": "Sense of bonding or avoidance",
+      "instantiation_effect": "Selective binding of energy partners"
     },
     {
       "state": 15,
       "polarity": "Strategy / Randomness",
-      "effortGuide": "Effort to plan or adapt flexibly",
-      "valenceGuide": "Purposeful action vs spontaneous response"
+      "mood_description": "Logic / Adaptation",
+      "keywords": ["Ambition", "Frustration", "Cleverness"],
+      "physical_collapse": "Feedback Loop / Stochastic Modulation",
+      "physical_function": "Determines deterministic vs probabilistic paths",
+      "manifestation": "Problem solving or confusion",
+      "instantiation_effect": "Modulates predictability of processes"
     },
     {
       "state": 16,
       "polarity": "Endurance / Fragility",
-      "effortGuide": "Effort to persist or cope",
-      "valenceGuide": "Durability vs weakness; resilience vs susceptibility"
+      "mood_description": "Strength / Vulnerability",
+      "keywords": ["Resilience", "Despair", "Determination"],
+      "physical_collapse": "Stability / Collapse Threshold",
+      "physical_function": "Resistance to stress",
+      "manifestation": "Physical and emotional persistence",
+      "instantiation_effect": "Determines energy structure longevity"
     },
     {
       "state": 17,
       "polarity": "Abundance / Scarcity",
-      "effortGuide": "Effort to share or conserve resources",
-      "valenceGuide": "Prosperity vs limitation; open-handedness vs restriction"
+      "mood_description": "Generosity / Limitation",
+      "keywords": ["Gratitude", "Envy", "Contentment"],
+      "physical_collapse": "Energy Reservoir / Depletion",
+      "physical_function": "Quantity available",
+      "manifestation": "Sense of fullness or lack",
+      "instantiation_effect": "Determines amplitude / magnitude"
     },
     {
       "state": 18,
       "polarity": "Influence / Isolation",
-      "effortGuide": "Effort to affect or withdraw",
-      "valenceGuide": "Agency vs withdrawal; ability to make impact"
+      "mood_description": "Impact / Withdrawal",
+      "keywords": ["Pride", "Shame", "Confidence"],
+      "physical_collapse": "Field Strength / Shielding",
+      "physical_function": "Interaction vs isolation",
+      "manifestation": "Feeling of connectedness or separation",
+      "instantiation_effect": "Determines effect on neighboring nodes"
     },
     {
       "state": 19,
       "polarity": "Justice / Equilibrium",
-      "effortGuide": "Effort to mediate or maintain fairness",
-      "valenceGuide": "Fairness vs imbalance; ethical and social balance"
+      "mood_description": "Balance / Fairness",
+      "keywords": ["Satisfaction", "Guilt", "Fairness"],
+      "physical_collapse": "Balance / Compensation",
+      "physical_function": "Force equalization",
+      "manifestation": "Sense of fairness",
+      "instantiation_effect": "Ensures balanced energy flows"
     },
     {
       "state": 20,
       "polarity": "Compassion / Detachment",
-      "effortGuide": "Effort to engage emotionally or remain detached",
-      "valenceGuide": "Caring vs impartiality; relational sensitivity"
+      "mood_description": "Empathy / Objectivity",
+      "keywords": ["Empathy", "Indifference", "Care"],
+      "physical_collapse": "Energy Transfer / Insulation",
+      "physical_function": "Coupling for sharing vs isolation",
+      "manifestation": "Care or indifference",
+      "instantiation_effect": "Guides energy exchange between personal relationships"
     },
     {
       "state": 21,
       "polarity": "Purpose / Drift",
-      "effortGuide": "Effort to act intentionally or drift",
-      "valenceGuide": "Goal-directedness vs wandering; alignment of action"
+      "mood_description": "Intent / Aimlessness",
+      "keywords": ["Motivation", "Aimlessness", "Clarity"],
+      "physical_collapse": "Gradient Direction / Random Walk",
+      "physical_function": "Energy directional bias",
+      "manifestation": "Sense of direction or drift",
+      "instantiation_effect": "Defines path of energy flow"
     },
     {
       "state": 22,
       "polarity": "Completion / Void",
-      "effortGuide": "Effort to finalize or let go",
-      "valenceGuide": "Closure, mastery vs openness, surrender"
+      "mood_description": "Mastery / Release",
+      "keywords": ["Fulfillment", "Serenity", "Emptiness"],
+      "physical_collapse": "Saturation / Release",
+      "physical_function": "Fully resolved vs released",
+      "manifestation": "Experience of fulfillment",
+      "instantiation_effect": "Dissolves need for further physical instantiation"
     }
   ]
 }
