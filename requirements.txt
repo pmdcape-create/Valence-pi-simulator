@@ -1,0 +1,20 @@
+# --- Core Framework & UI ---
+streamlit>=1.40.0
+pandas
+
+# --- Math & Simulation Engine ---
+numpy>=1.26
+scipy>=1.14
+networkx>=3.0
+
+# --- Data Visualization ---
+matplotlib
+plotly>=5.20
+
+# --- Document & PDF Generation ---
+fpdf2
+reportlab>=4.0
+
+# --- Utilities ---
+pyyaml>=6.0.1
+requests>=2.28

@@ -1,0 +1,136 @@
+{
+  "stateGuides": [
+    {
+      "state": 1,
+      "polarity": "Existence / Non-Existence",
+      "effortGuide": "Initial recognition of being; minimal effort needed",
+      "valenceGuide": "Represents the fundamental sense of presence vs absence"
+    },
+    {
+      "state": 2,
+      "polarity": "Unity / Division",
+      "effortGuide": "Effort to integrate contrasting elements",
+      "valenceGuide": "Reflects harmony vs separation in relationships and thought"
+    },
+    {
+      "state": 3,
+      "polarity": "Potential / Kinetic",
+      "effortGuide": "Effort to move from ideas to action",
+      "valenceGuide": "Represents readiness to act vs latent potential"
+    },
+    {
+      "state": 4,
+      "polarity": "Static / Dynamic",
+      "effortGuide": "Effort to maintain balance while initiating action",
+      "valenceGuide": "Stability vs motion; comfort with change vs rigidity"
+    },
+    {
+      "state": 5,
+      "polarity": "Inclusion / Exclusion",
+      "effortGuide": "Effort to connect or set boundaries",
+      "valenceGuide": "Social integration vs isolation; relational belonging"
+    },
+    {
+      "state": 6,
+      "polarity": "Symmetry / Asymmetry",
+      "effortGuide": "Effort to align elements or adapt to imbalance",
+      "valenceGuide": "Order vs disorder; internal or external coherence"
+    },
+    {
+      "state": 7,
+      "polarity": "Coherence / Chaos",
+      "effortGuide": "Effort to create structure amidst confusion",
+      "valenceGuide": "Clarity of purpose vs disarray; mental focus"
+    },
+    {
+      "state": 8,
+      "polarity": "Will / Submission",
+      "effortGuide": "Effort to assert or surrender control",
+      "valenceGuide": "Exercise of power vs yielding; agency vs compliance"
+    },
+    {
+      "state": 9,
+      "polarity": "Clarity / Obscurity",
+      "effortGuide": "Effort to perceive clearly or trust intuition",
+      "valenceGuide": "Mental transparency vs uncertainty; insight vs opacity"
+    },
+    {
+      "state": 10,
+      "polarity": "Resonance / Dissonance",
+      "effortGuide": "Effort to align with environment or self",
+      "valenceGuide": "Emotional and energetic harmony vs conflict"
+    },
+    {
+      "state": 11,
+      "polarity": "Expansion / Contraction",
+      "effortGuide": "Effort to broaden scope or conserve energy",
+      "valenceGuide": "Growth, openness vs restriction, contraction"
+    },
+    {
+      "state": 12,
+      "polarity": "Knowledge / Ignorance",
+      "effortGuide": "Effort to learn or remain unaware",
+      "valenceGuide": "Awareness vs unawareness; information assimilation"
+    },
+    {
+      "state": 13,
+      "polarity": "Creation / Destruction",
+      "effortGuide": "Effort to build or dismantle",
+      "valenceGuide": "Constructive vs destructive tendencies; transformation"
+    },
+    {
+      "state": 14,
+      "polarity": "Love / Aversion",
+      "effortGuide": "Effort to connect or disengage emotionally",
+      "valenceGuide": "Acceptance, care vs rejection, avoidance"
+    },
+    {
+      "state": 15,
+      "polarity": "Strategy / Randomness",
+      "effortGuide": "Effort to plan or adapt flexibly",
+      "valenceGuide": "Purposeful action vs spontaneous response"
+    },
+    {
+      "state": 16,
+      "polarity": "Endurance / Fragility",
+      "effortGuide": "Effort to persist or cope",
+      "valenceGuide": "Durability vs weakness; resilience vs susceptibility"
+    },
+    {
+      "state": 17,
+      "polarity": "Abundance / Scarcity",
+      "effortGuide": "Effort to share or conserve resources",
+      "valenceGuide": "Prosperity vs limitation; open-handedness vs restriction"
+    },
+    {
+      "state": 18,
+      "polarity": "Influence / Isolation",
+      "effortGuide": "Effort to affect or withdraw",
+      "valenceGuide": "Agency vs withdrawal; ability to make impact"
+    },
+    {
+      "state": 19,
+      "polarity": "Justice / Equilibrium",
+      "effortGuide": "Effort to mediate or maintain fairness",
+      "valenceGuide": "Fairness vs imbalance; ethical and social balance"
+    },
+    {
+      "state": 20,
+      "polarity": "Compassion / Detachment",
+      "effortGuide": "Effort to engage emotionally or remain detached",
+      "valenceGuide": "Caring vs impartiality; relational sensitivity"
+    },
+    {
+      "state": 21,
+      "polarity": "Purpose / Drift",
+      "effortGuide": "Effort to act intentionally or drift",
+      "valenceGuide": "Goal-directedness vs wandering; alignment of action"
+    },
+    {
+      "state": 22,
+      "polarity": "Completion / Void",
+      "effortGuide": "Effort to finalize or let go",
+      "valenceGuide": "Closure, mastery vs openness, surrender"
+    }
+  ]
+}

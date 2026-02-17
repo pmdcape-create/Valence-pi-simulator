@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+temp_*.png
+*.pdf
+.DS_Store
