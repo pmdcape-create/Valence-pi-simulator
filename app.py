@@ -115,24 +115,42 @@ if run_sim:
     ax.plot(np.concatenate([history_core, history_surface], axis=1))
     st.pyplot(fig)
 
-    # 6. PDF EXPORT
+   # 6. PDF EXPORT (Robust Layout version)
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Helvetica", 'B', 14)
-    pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True)
+    pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True, align='C')
+    
     pdf.set_font("Helvetica", size=10)
-    pdf.multi_cell(0, 5, f"Intent: {user_intent}")
+    pdf.ln(5)
+    # Using a fixed width (e.g., 180mm) instead of 0 to avoid the "no space" error
+    pdf.multi_cell(180, 7, f"Intent: {user_intent}")
     
     for idx in impact_indices:
         guide = get_state_guide(idx + 1)
         if guide:
-            pdf.ln(5)
+            pdf.ln(10) # Create space between blocks
             pdf.set_font("Helvetica", 'B', 11)
-            pdf.cell(0, 8, f"Shift in {labels[idx]} ({guide['polarity']})", ln=True)
+            pdf.cell(180, 8, f"Shift in {labels[idx]} ({guide['polarity']})", ln=True)
+            
             pdf.set_font("Helvetica", size=10)
-            pdf.multi_cell(0, 5, f"Keywords: {', '.join(guide['keywords'])}")
-            pdf.multi_cell(0, 5, f"Function: {guide['physical_function']}")
-            pdf.multi_cell(0, 5, f"Effect: {guide['instantiation_effect']}")
+            # We explicitly define the height and width to prevent rendering calculation errors
+            pdf.multi_cell(180, 5, f"Keywords: {', '.join(guide.get('keywords', []))}")
+            pdf.ln(1)
+            pdf.multi_cell(180, 5, f"Function: {guide.get('physical_function', 'N/A')}")
+            pdf.ln(1)
+            pdf.multi_cell(180, 5, f"Effect: {guide.get('instantiation_effect', 'N/A')}")
 
-    pdf_bytes = pdf.output()
-    st.download_button("📥 Download Actionable Guidance Report", data=bytes(pdf_bytes), file_name="ValencePi_Report.pdf")
+    # Use a temporary file to handle the output buffer safely for Streamlit
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        pdf.output(tmp.name)
+        with open(tmp.name, "rb") as f:
+            pdf_data = f.read()
+
+    st.download_button(
+        label="📥 Download Actionable Guidance Report",
+        data=pdf_data,
+        file_name="ValencePi_Report.pdf",
+        mime="application/pdf"
+    )
