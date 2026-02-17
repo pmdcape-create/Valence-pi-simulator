@@ -4,6 +4,7 @@ import json
 import matplotlib.pyplot as plt
 import pandas as pd
 from fpdf import FPDF
+import tempfile  # This was the missing line
 import os
 
 # Internal engine imports
