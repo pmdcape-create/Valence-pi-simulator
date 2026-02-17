@@ -4,7 +4,7 @@ import json
 import matplotlib.pyplot as plt
 import pandas as pd
 from fpdf import FPDF
-import tempfile  # This was the missing line
+import tempfile
 import os
 
 # Internal engine imports
@@ -19,9 +19,8 @@ from radial_engine.simulation import run_simulation
 st.set_page_config(page_title="Valence-Pi Simulator", layout="wide")
 
 # ==========================================
-# DATA LOADING (Corrected Path)
+# DATA LOADING
 # ==========================================
-# We check multiple possible locations to ensure the app finds your JSON
 JSON_PATHS = ["radial_engine/stateGuides.json", "stateGuides.json"]
 state_guides_data = []
 
@@ -30,12 +29,9 @@ for path in JSON_PATHS:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 state_guides_data = json.load(f)["stateGuides"]
-                break # Stop once we find it
+                break
         except Exception as e:
             st.sidebar.warning(f"Error reading {path}: {e}")
-
-if not state_guides_data:
-    st.sidebar.error("Could not locate stateGuides.json. Please check your GitHub folder structure.")
 
 def get_state_guide(state_number):
     for guide in state_guides_data:
@@ -44,16 +40,15 @@ def get_state_guide(state_number):
     return None
 
 # ==========================================
-# SIDEBAR & INPUTS
+# SIDEBAR UI
 # ==========================================
 st.sidebar.title("System Dynamics")
 age_cat = st.sidebar.selectbox("Subject Life Stage", options=["Childhood", "Adolescence", "Adulthood", "Early Ageing", "Late Ageing"], index=2)
 steps_input = st.sidebar.number_input("Simulation Steps", 1, 100, 10)
 
 st.sidebar.subheader("Simulation Intent")
-user_intent = st.sidebar.text_area("Describe your goal:", placeholder="e.g. Improve influence without sole reliance on knowledge...", height=100)
+user_intent = st.sidebar.text_area("Describe your goal:", height=100)
 
-# Sidebar Sliders with Semantic Labels
 st.sidebar.subheader("Adjust States")
 for i in range(N_CORE):
     guide = get_state_guide(i + 1)
@@ -74,84 +69,122 @@ st.title("Valence-Pi Structural Simulator")
 st.caption(f"Status: {len(state_guides_data)} semantic states active.")
 
 if run_sim:
-    # 1. Prepare Data
+    # 1. Run Simulation
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    # 2. Run Engine
     history_core, history_surface = run_simulation(
-        initial_core=BASELINE_CORE, 
-        initial_surface=BASELINE_SURFACE,
-        target_core=t_core, 
-        target_surface=t_surface,
-        steps=int(steps_input), 
-        damping=0.886
+        initial_core=BASELINE_CORE, initial_surface=BASELINE_SURFACE,
+        target_core=t_core, target_surface=t_surface,
+        steps=int(steps_input), damping=0.886
     )
     
-    # 3. Process Results
-    final_all = np.concatenate([history_core[-1], history_surface[-1]])
-    initial_all = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
-    deltas = final_all - initial_all
+    # 2. Results & Deltas
+    all_final = np.concatenate([history_core[-1], history_surface[-1]])
+    all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
+    deltas = all_final - all_initial
     labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
 
-    # 4. HUMAN-CENTRIC INSPECTOR
+    # 3. THE INSPECTOR (Top 3 Semantic Shifts)
     st.header("Human-Centric Interpretation")
-    # Identify Top 3 absolute Deltas
     impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
-    
     cols = st.columns(3)
     for i, idx in enumerate(impact_indices):
         guide = get_state_guide(idx + 1)
         with cols[i]:
-            st.metric(label=labels[idx], value=f"{final_all[idx]:.2f}", delta=f"{deltas[idx]:.3f}")
+            st.metric(label=labels[idx], value=f"{all_final[idx]:.2f}", delta=f"{deltas[idx]:.3f}")
             if guide:
                 st.write(f"**Mood:** {guide.get('mood_description', 'N/A')}")
                 st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
                 st.info(f"**Physical Function:** {guide.get('physical_function', 'N/A')}")
                 st.caption(f"**Manifestation:** {guide.get('manifestation', 'N/A')}")
 
-    # 5. GRAPH
-    st.subheader("Field Trajectory")
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(np.concatenate([history_core, history_surface], axis=1))
-    st.pyplot(fig)
+    # 4. GRAPHS DASHBOARD (With Legends)
+    st.markdown("---")
+    st.header("System Realignment Visuals")
+    tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
+    
+    with tab1:
+        fig1, ax1 = plt.subplots(figsize=(10, 5))
+        for i in range(N_CORE):
+            ax1.plot(history_core[:, i], label=f"C{i+1}")
+        for j in range(N_SURFACE):
+            ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+8}")
+        ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small', ncol=1)
+        ax1.set_title("Full Field Realignment")
+        st.pyplot(fig1)
 
-   # 6. PDF EXPORT (Robust Layout version)
+    with tab2:
+        fig2, ax2 = plt.subplots(figsize=(10, 5))
+        for i in range(N_CORE):
+            ax2.plot(history_core[:, i], label=f"C{i+1}")
+        ax2.legend(loc='best')
+        ax2.set_title("Core (C1-C7) Stability Path")
+        st.pyplot(fig2)
+
+    with tab3:
+        fig3, ax3 = plt.subplots(figsize=(10, 5))
+        for j in range(N_SURFACE):
+            ax3.plot(history_surface[:, j], label=f"S{j+8}")
+        ax3.legend(loc='best')
+        ax3.set_title("Surface (S8-S22) Activation Path")
+        st.pyplot(fig3)
+
+    # 5. DATA TABLE
+    st.subheader("Final State Values")
+    df_results = pd.DataFrame({
+        "State": labels,
+        "Final Value": all_final,
+        "Delta": deltas
+    })
+    st.dataframe(df_results.style.highlight_max(axis=0), use_container_width=True)
+
+    # 6. PDF EXPORT
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_font("Helvetica", 'B', 14)
+    pdf.set_font("Helvetica", 'B', 16)
     pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True, align='C')
-    
-    pdf.set_font("Helvetica", size=10)
     pdf.ln(5)
-    # Using a fixed width (e.g., 180mm) instead of 0 to avoid the "no space" error
+    pdf.set_font("Helvetica", size=10)
     pdf.multi_cell(180, 7, f"Intent: {user_intent}")
+
+    # Add Graph to PDF
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
+        fig1.savefig(tmp_img.name)
+        pdf.image(tmp_img.name, x=10, y=None, w=180)
     
+    # Add Semantic Shifts
+    pdf.ln(10)
+    pdf.set_font("Helvetica", 'B', 12)
+    pdf.cell(0, 10, "Top 3 Actionable Semantic Shifts", ln=True)
     for idx in impact_indices:
         guide = get_state_guide(idx + 1)
         if guide:
-            pdf.ln(10) # Create space between blocks
-            pdf.set_font("Helvetica", 'B', 11)
-            pdf.cell(180, 8, f"Shift in {labels[idx]} ({guide['polarity']})", ln=True)
-            
-            pdf.set_font("Helvetica", size=10)
-            # We explicitly define the height and width to prevent rendering calculation errors
-            pdf.multi_cell(180, 5, f"Keywords: {', '.join(guide.get('keywords', []))}")
-            pdf.ln(1)
-            pdf.multi_cell(180, 5, f"Function: {guide.get('physical_function', 'N/A')}")
-            pdf.ln(1)
-            pdf.multi_cell(180, 5, f"Effect: {guide.get('instantiation_effect', 'N/A')}")
+            pdf.set_font("Helvetica", 'B', 10)
+            pdf.cell(180, 8, f"{labels[idx]} ({guide['polarity']})", ln=True)
+            pdf.set_font("Helvetica", size=9)
+            pdf.multi_cell(180, 5, f"Keywords: {', '.join(guide['keywords'])}")
+            pdf.multi_cell(180, 5, f"Function: {guide['physical_function']}")
+            pdf.ln(2)
 
-    # Use a temporary file to handle the output buffer safely for Streamlit
+    # Add Data Table to PDF
+    pdf.add_page()
+    pdf.set_font("Helvetica", 'B', 12)
+    pdf.cell(0, 10, "Full State Realignment Data", ln=True)
+    pdf.set_font("Helvetica", 'B', 9)
+    pdf.cell(30, 8, "State", 1); pdf.cell(80, 8, "Polarity", 1); pdf.cell(35, 8, "Value", 1); pdf.cell(35, 8, "Delta", 1, ln=True)
+    pdf.set_font("Helvetica", size=8)
+    for i, label in enumerate(labels):
+        guide = get_state_guide(i + 1)
+        pdf.cell(30, 7, label, 1)
+        pdf.cell(80, 7, guide['polarity'] if guide else "N/A", 1)
+        pdf.cell(35, 7, f"{all_final[i]:.3f}", 1)
+        pdf.cell(35, 7, f"{deltas[i]:.3f}", 1, ln=True)
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         pdf.output(tmp.name)
         with open(tmp.name, "rb") as f:
             pdf_data = f.read()
 
-    st.download_button(
-        label="📥 Download Actionable Guidance Report",
-        data=pdf_data,
-        file_name="ValencePi_Report.pdf",
-        mime="application/pdf"
-    )
+    st.download_button("📥 Download Research Alignment Report", data=pdf_data, file_name="ValencePi_Full_Report.pdf")
