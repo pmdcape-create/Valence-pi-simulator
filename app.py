@@ -85,7 +85,7 @@ if run_sim:
     deltas = all_final - all_initial
     labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
 
-    # 3. THE INSPECTOR
+    # 3. THE INSPECTOR (Top 3 Semantic Shifts)
     st.header("Human-Centric Interpretation")
     impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
     cols = st.columns(3)
@@ -99,23 +99,25 @@ if run_sim:
                 st.info(f"**Physical Function:** {guide.get('physical_function', 'N/A')}")
                 st.caption(f"**Manifestation:** {guide.get('manifestation', 'N/A')}")
 
-    # 4. GRAPHS DASHBOARD
+    # 4. GRAPHS DASHBOARD (Restored all 3 graphs)
     st.markdown("---")
     st.header("System Realignment Visuals")
     tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
     
-    # Pre-generate figures for both App and PDF use
+    # Figure 1: Combined
     fig1, ax1 = plt.subplots(figsize=(10, 5))
     for i in range(N_CORE): ax1.plot(history_core[:, i], label=f"C{i+1}")
     for j in range(N_SURFACE): ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+8}")
     ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
     ax1.set_title("Full Field Realignment")
 
+    # Figure 2: Core
     fig2, ax2 = plt.subplots(figsize=(10, 5))
     for i in range(N_CORE): ax2.plot(history_core[:, i], label=f"C{i+1}")
     ax2.legend(loc='best')
     ax2.set_title("Core (C1-C7) Stability Path")
 
+    # Figure 3: Surface
     fig3, ax3 = plt.subplots(figsize=(10, 5))
     for j in range(N_SURFACE): ax3.plot(history_surface[:, j], label=f"S{j+8}")
     ax3.legend(loc='best')
@@ -125,12 +127,12 @@ if run_sim:
     with tab2: st.pyplot(fig2)
     with tab3: st.pyplot(fig3)
 
-    # 5. DATA TABLE
+    # 5. DATA TABLE (Full width)
     st.subheader("Final State Values")
     df_results = pd.DataFrame({"State": labels, "Final Value": all_final, "Delta": deltas})
     st.dataframe(df_results.style.highlight_max(axis=0), use_container_width=True)
 
-    # 6. PDF EXPORT (Corrected for all 3 graphs and full text)
+    # 6. PDF EXPORT (Fixed for all graphs and full text)
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
@@ -139,13 +141,14 @@ if run_sim:
     pdf.set_font("Helvetica", size=10)
     pdf.multi_cell(180, 7, f"Intent: {user_intent}")
 
-    # Save and Add all 3 Figures to PDF
-    for i, f in enumerate([fig1, fig2, fig3]):
+    # Add ALL 3 Graphs to PDF
+    for f in [fig1, fig2, fig3]:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
             f.savefig(tmp.name, bbox_inches='tight')
             pdf.image(tmp.name, x=10, w=180)
             pdf.ln(2)
 
+    # Semantic Shift Detail
     pdf.add_page()
     pdf.set_font("Helvetica", 'B', 12)
     pdf.cell(0, 10, "Actionable Semantic Guidance", ln=True)
@@ -160,7 +163,7 @@ if run_sim:
             pdf.multi_cell(180, 5, f"Instantiation Effect: {guide.get('instantiation_effect', 'N/A')}")
             pdf.ln(4)
 
-    # Table Page
+    # Data Table Page
     pdf.add_page()
     pdf.set_font("Helvetica", 'B', 12)
     pdf.cell(0, 10, "Full State Realignment Data", ln=True)
