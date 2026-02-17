@@ -85,7 +85,7 @@ if run_sim:
     deltas = all_final - all_initial
     labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
 
-    # 3. THE INSPECTOR (Top 3 Semantic Shifts)
+    # 3. THE INSPECTOR
     st.header("Human-Centric Interpretation")
     impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
     cols = st.columns(3)
@@ -99,92 +99,82 @@ if run_sim:
                 st.info(f"**Physical Function:** {guide.get('physical_function', 'N/A')}")
                 st.caption(f"**Manifestation:** {guide.get('manifestation', 'N/A')}")
 
-    # 4. GRAPHS DASHBOARD (With Legends)
+    # 4. GRAPHS DASHBOARD
     st.markdown("---")
     st.header("System Realignment Visuals")
     tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
     
-    with tab1:
-        fig1, ax1 = plt.subplots(figsize=(10, 5))
-        for i in range(N_CORE):
-            ax1.plot(history_core[:, i], label=f"C{i+1}")
-        for j in range(N_SURFACE):
-            ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+8}")
-        ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small', ncol=1)
-        ax1.set_title("Full Field Realignment")
-        st.pyplot(fig1)
+    # Pre-generate figures for both App and PDF use
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
+    for i in range(N_CORE): ax1.plot(history_core[:, i], label=f"C{i+1}")
+    for j in range(N_SURFACE): ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+8}")
+    ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
+    ax1.set_title("Full Field Realignment")
 
-    with tab2:
-        fig2, ax2 = plt.subplots(figsize=(10, 5))
-        for i in range(N_CORE):
-            ax2.plot(history_core[:, i], label=f"C{i+1}")
-        ax2.legend(loc='best')
-        ax2.set_title("Core (C1-C7) Stability Path")
-        st.pyplot(fig2)
+    fig2, ax2 = plt.subplots(figsize=(10, 5))
+    for i in range(N_CORE): ax2.plot(history_core[:, i], label=f"C{i+1}")
+    ax2.legend(loc='best')
+    ax2.set_title("Core (C1-C7) Stability Path")
 
-    with tab3:
-        fig3, ax3 = plt.subplots(figsize=(10, 5))
-        for j in range(N_SURFACE):
-            ax3.plot(history_surface[:, j], label=f"S{j+8}")
-        ax3.legend(loc='best')
-        ax3.set_title("Surface (S8-S22) Activation Path")
-        st.pyplot(fig3)
+    fig3, ax3 = plt.subplots(figsize=(10, 5))
+    for j in range(N_SURFACE): ax3.plot(history_surface[:, j], label=f"S{j+8}")
+    ax3.legend(loc='best')
+    ax3.set_title("Surface (S8-S22) Activation Path")
+
+    with tab1: st.pyplot(fig1)
+    with tab2: st.pyplot(fig2)
+    with tab3: st.pyplot(fig3)
 
     # 5. DATA TABLE
     st.subheader("Final State Values")
-    df_results = pd.DataFrame({
-        "State": labels,
-        "Final Value": all_final,
-        "Delta": deltas
-    })
+    df_results = pd.DataFrame({"State": labels, "Final Value": all_final, "Delta": deltas})
     st.dataframe(df_results.style.highlight_max(axis=0), use_container_width=True)
 
-    # 6. PDF EXPORT
+    # 6. PDF EXPORT (Corrected for all 3 graphs and full text)
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Helvetica", 'B', 16)
     pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True, align='C')
-    pdf.ln(5)
     pdf.set_font("Helvetica", size=10)
     pdf.multi_cell(180, 7, f"Intent: {user_intent}")
 
-    # Add Graph to PDF
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
-        fig1.savefig(tmp_img.name)
-        pdf.image(tmp_img.name, x=10, y=None, w=180)
-    
-    # Add Semantic Shifts
-    pdf.ln(10)
+    # Save and Add all 3 Figures to PDF
+    for i, f in enumerate([fig1, fig2, fig3]):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+            f.savefig(tmp.name, bbox_inches='tight')
+            pdf.image(tmp.name, x=10, w=180)
+            pdf.ln(2)
+
+    pdf.add_page()
     pdf.set_font("Helvetica", 'B', 12)
-    pdf.cell(0, 10, "Top 3 Actionable Semantic Shifts", ln=True)
+    pdf.cell(0, 10, "Actionable Semantic Guidance", ln=True)
     for idx in impact_indices:
         guide = get_state_guide(idx + 1)
         if guide:
             pdf.set_font("Helvetica", 'B', 10)
             pdf.cell(180, 8, f"{labels[idx]} ({guide['polarity']})", ln=True)
             pdf.set_font("Helvetica", size=9)
-            pdf.multi_cell(180, 5, f"Keywords: {', '.join(guide['keywords'])}")
-            pdf.multi_cell(180, 5, f"Function: {guide['physical_function']}")
-            pdf.ln(2)
+            pdf.multi_cell(180, 5, f"Keywords: {', '.join(guide.get('keywords', []))}")
+            pdf.multi_cell(180, 5, f"Physical Function: {guide.get('physical_function', 'N/A')}")
+            pdf.multi_cell(180, 5, f"Instantiation Effect: {guide.get('instantiation_effect', 'N/A')}")
+            pdf.ln(4)
 
-    # Add Data Table to PDF
+    # Table Page
     pdf.add_page()
     pdf.set_font("Helvetica", 'B', 12)
     pdf.cell(0, 10, "Full State Realignment Data", ln=True)
     pdf.set_font("Helvetica", 'B', 9)
     pdf.cell(30, 8, "State", 1); pdf.cell(80, 8, "Polarity", 1); pdf.cell(35, 8, "Value", 1); pdf.cell(35, 8, "Delta", 1, ln=True)
     pdf.set_font("Helvetica", size=8)
-    for i, label in enumerate(labels):
-        guide = get_state_guide(i + 1)
-        pdf.cell(30, 7, label, 1)
-        pdf.cell(80, 7, guide['polarity'] if guide else "N/A", 1)
-        pdf.cell(35, 7, f"{all_final[i]:.3f}", 1)
+    for i, val in enumerate(all_final):
+        g = get_state_guide(i + 1)
+        pdf.cell(30, 7, labels[i], 1)
+        pdf.cell(80, 7, g['polarity'] if g else "N/A", 1)
+        pdf.cell(35, 7, f"{val:.3f}", 1)
         pdf.cell(35, 7, f"{deltas[i]:.3f}", 1, ln=True)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         pdf.output(tmp.name)
         with open(tmp.name, "rb") as f:
-            pdf_data = f.read()
-
-    st.download_button("📥 Download Research Alignment Report", data=pdf_data, file_name="ValencePi_Full_Report.pdf")
+            st.download_button("📥 Download Full Research Report", data=f.read(), file_name="ValencePi_Full_Report.pdf")
