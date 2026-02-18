@@ -91,11 +91,11 @@ if run_sim:
     # --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
         # 3. Process Results
-        # We use np.atleast_1d to ensure scalars are treated as arrays
+        # Force 1D shape to prevent the "zero-dimensional" ValueError
         core_final = np.atleast_1d(history_core[-1])
         surf_final = np.atleast_1d(history_surface[-1])
         
-        # Now concatenation will not fail with "zero-dimensional" error
+        # Now these can safely be concatenated
         all_final = np.concatenate([core_final, surf_final])
         
         all_initial = np.concatenate([
@@ -104,11 +104,12 @@ if run_sim:
         ])
         
         deltas = all_final - all_initial
-        # Ensure labels match the total length of all_final
+        
+        # Use the actual length of the returned data for labels
         labels = [f"C{i+1}" for i in range(len(core_final))] + \
                  [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
-
         
+                
         # 4. THE INSPECTOR
         st.header("Human-Centric Interpretation")
         impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
