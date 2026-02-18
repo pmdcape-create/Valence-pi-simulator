@@ -73,10 +73,10 @@ if run_sim:
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    # Initialize variables to None to prevent 'not defined' errors later
+    # Initialize variables
     history_core, history_surface = None, None
 
-   # 2. Run Engine
+    # 2. Run Engine
     try:
         history_core, history_surface = run_simulation(
             BASELINE_CORE, 
@@ -88,24 +88,13 @@ if run_sim:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
 
-    # --- THE SAFETY GATE (Indentation Check) ---
+    # --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
-        # 3. Process Results (Everything inside this block must be indented)
+        # 3. Process Results (Must be inside this IF block)
         all_final = np.concatenate([history_core[-1], history_surface[-1]])
         all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
         deltas = all_final - all_initial
-        labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
-
-        # ... (rest of your graphing and PDF code) ...
-
-        pdf_path = tempfile.mktemp(suffix=".pdf")
-        pdf.output(pdf_path)
-        with open(pdf_path, "rb") as f:
-            st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
-            
-    else:  # <--- This must be at the same indentation level as 'if history_core...'
-        st.error("No simulation data generated.")
-        st.stop()
+        labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+N_CORE+1}" for i in range(N_SURFACE)]
 
         # 4. THE INSPECTOR
         st.header("Human-Centric Interpretation")
@@ -128,7 +117,7 @@ if run_sim:
         with tab1:
             fig1, ax1 = plt.subplots(figsize=(10, 5))
             for i in range(N_CORE): ax1.plot(history_core[:, i], label=f"C{i+1}")
-            for j in range(N_SURFACE): ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+8}")
+            for j in range(N_SURFACE): ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+N_CORE+1}")
             ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small', ncol=1)
             st.pyplot(fig1)
 
@@ -140,7 +129,7 @@ if run_sim:
 
         with tab3:
             fig3, ax3 = plt.subplots(figsize=(10, 5))
-            for j in range(N_SURFACE): ax3.plot(history_surface[:, j], label=f"S{j+8}")
+            for j in range(N_SURFACE): ax3.plot(history_surface[:, j], label=f"S{j+N_CORE+1}")
             ax3.legend(loc='best')
             st.pyplot(fig3)
 
@@ -159,6 +148,7 @@ if run_sim:
         pdf.output(pdf_path)
         with open(pdf_path, "rb") as f:
             st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
+
     else:
         st.error("No simulation data generated.")
         st.stop()
