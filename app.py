@@ -119,7 +119,7 @@ if run_sim:
                     st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
                     st.info(f"**Function:** {guide.get('physical_function', 'N/A')}")
 
-        # 5. GRAPHS DASHBOARD (Hardened against ragged arrays)
+        # 5. GRAPHS DASHBOARD (Hardened against Deep Nesting)
         st.markdown("---")
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
@@ -128,18 +128,27 @@ if run_sim:
             if data is None or len(data) == 0: 
                 return np.array([]), 0
             
-            # 1. Standardize everything to a list of floats
+            def flatten_anything(items):
+                """Recursively flattens nested lists into a single list of floats."""
+                for x in items:
+                    if hasattr(x, "__iter__") and not isinstance(x, (str, bytes)):
+                        yield from flatten_anything(x)
+                    else:
+                        try:
+                            yield float(x)
+                        except (TypeError, ValueError):
+                            yield 0.0
+
+            # 1. Standardize everything to a flat list of floats per step
             standardized = []
             for step in data:
-                if hasattr(step, "__iter__") and not isinstance(step, (str, bytes)):
-                    standardized.append([float(x) for x in step])
-                else:
-                    standardized.append([float(step)])
+                # Use the recursive flattener for each simulation step
+                standardized.append(list(flatten_anything([step])))
             
-            # 2. Find maximum column width in the simulation history
+            # 2. Find maximum column width
             max_cols = max(len(row) for row in standardized)
             
-            # 3. Force alignment (pad with last value or trim)
+            # 3. Force alignment (pad shorter rows)
             aligned = []
             for row in standardized:
                 if len(row) < max_cols:
