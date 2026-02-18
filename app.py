@@ -14,7 +14,7 @@ from radial_engine.config import (
 from radial_engine.simulation import run_simulation
 
 # Import the Narrative Logic Engine
-from narrative_engine import NarrativeEngine
+from radial_engine.narrative_engine import NarrativeEngine
 
 # ==========================================
 # PAGE CONFIG
