@@ -76,9 +76,8 @@ if run_sim:
     # Initialize variables to None to prevent 'not defined' errors later
     history_core, history_surface = None, None
 
-    # 2. Run Engine (Robust Multi-Signature Support)
+   # 2. Run Engine
     try:
-        # Primary attempt using the confirmed 4-argument signature
         history_core, history_surface = run_simulation(
             BASELINE_CORE, 
             BASELINE_SURFACE, 
@@ -87,23 +86,27 @@ if run_sim:
         )
     except Exception as e:
         st.error(f"Simulation Engine Error: {e}")
-        st.stop() # Halts execution here to prevent the concatenation crash
+        st.stop()
 
-    # --- THE SAFETY GATE ---
-    # Only proceed if the engine actually produced non-empty data
+    # --- THE SAFETY GATE (Indentation Check) ---
     if history_core is not None and len(history_core) > 0:
-        # 3. Process Results
-        # history_core[-1] retrieves the final 1D state array
+        # 3. Process Results (Everything inside this block must be indented)
         all_final = np.concatenate([history_core[-1], history_surface[-1]])
         all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
         deltas = all_final - all_initial
         labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
-        
-        # [cite_start]Proceed with interpretation and graphing... [cite: 45, 47]
-    else:
-        st.error("The simulation engine returned an empty result. Check radial_engine/simulation.py.")
+
+        # ... (rest of your graphing and PDF code) ...
+
+        pdf_path = tempfile.mktemp(suffix=".pdf")
+        pdf.output(pdf_path)
+        with open(pdf_path, "rb") as f:
+            st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
+            
+    else:  # <--- This must be at the same indentation level as 'if history_core...'
+        st.error("No simulation data generated.")
         st.stop()
-        
+
         # 4. THE INSPECTOR
         st.header("Human-Centric Interpretation")
         impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
