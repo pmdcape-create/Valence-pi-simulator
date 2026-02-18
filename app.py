@@ -73,10 +73,12 @@ if run_sim:
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
+    # Initialize variables to None to prevent 'not defined' errors later
     history_core, history_surface = None, None
 
-    # 2. Run Engine (Exact 4-Argument Signature)
+    # 2. Run Engine (Robust Multi-Signature Support)
     try:
+        # Primary attempt using the confirmed 4-argument signature
         history_core, history_surface = run_simulation(
             BASELINE_CORE, 
             BASELINE_SURFACE, 
@@ -85,16 +87,23 @@ if run_sim:
         )
     except Exception as e:
         st.error(f"Simulation Engine Error: {e}")
-        st.stop()
+        st.stop() # Halts execution here to prevent the concatenation crash
 
-    # --- SAFETY GATE ---
+    # --- THE SAFETY GATE ---
+    # Only proceed if the engine actually produced non-empty data
     if history_core is not None and len(history_core) > 0:
         # 3. Process Results
+        # history_core[-1] retrieves the final 1D state array
         all_final = np.concatenate([history_core[-1], history_surface[-1]])
         all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
         deltas = all_final - all_initial
         labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
-
+        
+        # [cite_start]Proceed with interpretation and graphing... [cite: 45, 47]
+    else:
+        st.error("The simulation engine returned an empty result. Check radial_engine/simulation.py.")
+        st.stop()
+        
         # 4. THE INSPECTOR
         st.header("Human-Centric Interpretation")
         impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
