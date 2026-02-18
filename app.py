@@ -92,20 +92,30 @@ if run_sim:
             t_surface
         )
     except TypeError:
-        # Fallback: The 5-argument combined target version
-        target_combined = np.concatenate([t_core, t_surface])
-        history_core, history_surface = run_simulation(
-            BASELINE_CORE,
-            BASELINE_SURFACE,
-            target_combined,
-            int(steps_input),
-            0.886
-        )
+        # Fallback: The 5/6-argument version
+        try:
+            target_combined = np.concatenate([t_core, t_surface])
+            history_core, history_surface = run_simulation(
+                BASELINE_CORE,
+                BASELINE_SURFACE,
+                target_combined,
+                int(steps_input),
+                0.886
+            )
+        except Exception as e:
+            st.error(f"Fallback Simulation failed: {e}")
+            st.stop()
     except Exception as e:
-        st.error(f"Simulation Engine Error: {e}")
+        st.error(f"Primary Simulation failed: {e}")
         st.stop()
 
-    # 3. Process Results (Rest of the code continues normally...)
+    # --- SAFETY CHECK ---
+    # Ensure history arrays are not empty/zero-dimensional before processing
+    if history_core is None or len(history_core) == 0:
+        st.error("Simulation returned no data. Check your radial_engine logic.")
+        st.stop()
+
+    # 3. Process Results
     all_final = np.concatenate([history_core[-1], history_surface[-1]])
     all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
     deltas = all_final - all_initial
