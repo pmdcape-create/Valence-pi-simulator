@@ -53,18 +53,19 @@ st.sidebar.title("Valence-Pi Controls")
 st.sidebar.markdown("Adjust baseline potentials to simulate systemic realignment.")
 
 with st.sidebar:
-    st.subheader("Core Potentials (1-4)")
+    st.subheader("Core Potentials (1-7)")
+    core_baselines = []
     for i in range(N_CORE):
-    # Added a unique key using the state index
-    val = st.slider(f"State {i+1} Baseline", -1.0, 1.0, BASELINE_CORE[i], 0.05, key=f"core_{i}")
-    core_baselines.append(val)
+        # The lines below are now properly indented
+        val = st.slider(f"State {i+1} Baseline", -1.0, 1.0, BASELINE_CORE[i], 0.05, key=f"core_{i}")
+        core_baselines.append(val)
 
-    st.subheader("Surface Potentials (5-22)")
+    st.subheader("Surface Potentials (8-22)")
     surf_baselines = []
     for i in range(N_SURFACE):
-    # Added a unique key using the state index
-    val = st.slider(f"State {i+5} Baseline", -1.0, 1.0, BASELINE_SURFACE[i], 0.05, key=f"surf_{i}")
-    surf_baselines.append(val)
+        # The lines below are now properly indented
+        val = st.slider(f"State {i+8} Baseline", -1.0, 1.0, BASELINE_SURFACE[i], 0.05, key=f"surf_{i}")
+        surf_baselines.append(val)
 
     st.divider()
     damping = st.slider("Propagation Damping", 0.0, 1.0, PROPAGATION_DAMPING, 0.01)
