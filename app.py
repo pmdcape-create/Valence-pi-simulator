@@ -127,20 +127,29 @@ if run_sim:
         
         with tab1:
             fig1, ax1 = plt.subplots(figsize=(10, 5))
-            for i in range(N_CORE): ax1.plot(history_core[:, i], label=f"C{i+1}")
-            for j in range(N_SURFACE): ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+N_CORE+1}")
+            # FIX: Only plot as many columns as history_core actually contains
+            num_history_core = history_core.shape[1]
+            num_history_surf = history_surface.shape[1]
+            
+            for i in range(num_history_core): 
+                ax1.plot(history_core[:, i], label=f"C{i+1}")
+            for j in range(num_history_surf): 
+                ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+num_history_core+1}")
+            
             ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
             st.pyplot(fig1)
 
         with tab2:
             fig2, ax2 = plt.subplots(figsize=(10, 5))
-            for i in range(N_CORE): ax2.plot(history_core[:, i], label=f"C{i+1}")
+            for i in range(num_history_core): 
+                ax2.plot(history_core[:, i], label=f"C{i+1}")
             ax2.legend(loc='best')
             st.pyplot(fig2)
 
         with tab3:
             fig3, ax3 = plt.subplots(figsize=(10, 5))
-            for j in range(N_SURFACE): ax3.plot(history_surface[:, j], label=f"S{j+N_CORE+1}")
+            for j in range(num_history_surf): 
+                ax3.plot(history_surface[:, j], label=f"S{j+num_history_core+1}")
             ax3.legend(loc='best')
             st.pyplot(fig3)
 
