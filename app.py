@@ -82,9 +82,9 @@ if run_sim:
             t_surface
         )
         
-        # --- SAFETY GATE (Properly Nested) ---
+        # --- SAFETY GATE ---
         if history_core is not None and len(history_core) > 0:
-            # 3. Process Results (Indented inside Safety Gate)
+            # 3. Process Results
             core_final = np.atleast_1d(history_core[-1]).flatten()
             surf_final = np.atleast_1d(history_surface[-1]).flatten()
             
@@ -105,7 +105,7 @@ if run_sim:
 
             st.success("Realignment Simulation Complete.")
 
-            # 4. THE INSPECTOR (Moved OUT of 'except' and INTO the success gate)
+            # 4. THE INSPECTOR
             st.header("Human-Centric Interpretation")
             impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
             cols = st.columns(3)
@@ -117,91 +117,60 @@ if run_sim:
                         st.write(f"**Mood:** {guide.get('mood_description', 'N/A')}")
                         st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
                         st.info(f"**Function:** {guide.get('physical_function', 'N/A')}")
-        else:
-            st.warning("Simulation produced no history data.")
+
+            # 5. GRAPHS DASHBOARD (Now correctly indented inside the Safety Gate)
+            st.markdown("---")
+            st.header("Visual Field Analysis")
+            tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
+            
+            def prepare_plot_data(data):
+                if data is None or len(data) == 0: 
+                    return np.array([]), 0
+                def flatten_anything(items):
+                    for x in items:
+                        if hasattr(x, "__iter__") and not isinstance(x, (str, bytes)):
+                            yield from flatten_anything(x)
+                        else:
+                            try: yield float(x)
+                            except: yield 0.0
+                standardized = [list(flatten_anything([step])) for step in data]
+                max_cols = max(len(row) for row in standardized)
+                aligned = [row + [row[-1]]*(max_cols-len(row)) if len(row) < max_cols else row[:max_cols] for row in standardized]
+                return np.array(aligned), max_cols
+
+            h_core_plt, num_h_core = prepare_plot_data(history_core)
+            h_surf_plt, num_h_surf = prepare_plot_data(history_surface)
+            
+            with tab1:
+                fig1, ax1 = plt.subplots(figsize=(10, 5))
+                for i in range(num_h_core): ax1.plot(h_core_plt[:, i], label=f"C{i+1}")
+                for j in range(num_h_surf): ax1.plot(h_surf_plt[:, j], linestyle='--', label=f"S{j+num_h_core+1}")
+                ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
+                st.pyplot(fig1)
+
+            with tab2:
+                fig2, ax2 = plt.subplots(figsize=(10, 5))
+                for i in range(num_h_core): ax2.plot(h_core_plt[:, i], label=f"C{i+1}")
+                st.pyplot(fig2)
+
+            with tab3:
+                fig3, ax3 = plt.subplots(figsize=(10, 5))
+                for j in range(num_h_surf): ax3.plot(h_surf_plt[:, j], label=f"S{j+num_h_core+1}")
+                st.pyplot(fig3)
+
+            # 6. PDF REPORT
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Helvetica", 'B', 16)
+            pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True, align='C')
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+                fig1.savefig(tmp.name, bbox_inches='tight')
+                pdf.image(tmp.name, x=10, w=180)
+            pdf_path = tempfile.mktemp(suffix=".pdf")
+            pdf.output(pdf_path)
+            with open(pdf_path, "rb") as f:
+                st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
 
     except Exception as e:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
-
-   # 5. GRAPHS DASHBOARD (Hardened against Deep Nesting)
-        st.markdown("---")
-        st.header("Visual Field Analysis")
-        tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
-        
-        def prepare_plot_data(data):
-            if data is None or len(data) == 0: 
-                return np.array([]), 0
-            
-            def flatten_anything(items):
-                """Recursively flattens nested lists into a single list of floats."""
-                for x in items:
-                    if hasattr(x, "__iter__") and not isinstance(x, (str, bytes)):
-                        yield from flatten_anything(x)
-                    else:
-                        try:
-                            yield float(x)
-                        except (TypeError, ValueError):
-                            yield 0.0
-
-            # 1. Standardize everything to a flat list of floats per step
-            standardized = []
-            for step in data:
-                # Use the recursive flattener for each simulation step
-                standardized.append(list(flatten_anything([step])))
-            
-            # 2. Find maximum column width
-            max_cols = max(len(row) for row in standardized)
-            
-            # 3. Force alignment (pad shorter rows)
-            aligned = []
-            for row in standardized:
-                if len(row) < max_cols:
-                    pad_val = row[-1] if len(row) > 0 else 0.0
-                    aligned.append(row + [pad_val] * (max_cols - len(row)))
-                else:
-                    aligned.append(row[:max_cols])
-            
-            return np.array(aligned), max_cols
-
-        h_core_plt, num_h_core = prepare_plot_data(history_core)
-        h_surf_plt, num_h_surf = prepare_plot_data(history_surface)
-        
-        with tab1:
-            fig1, ax1 = plt.subplots(figsize=(10, 5))
-            for i in range(num_h_core): 
-                ax1.plot(h_core_plt[:, i], label=f"C{i+1}")
-            for j in range(num_h_surf): 
-                ax1.plot(h_surf_plt[:, j], linestyle='--', label=f"S{j+num_h_core+1}")
-            ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
-            st.pyplot(fig1)
-
-        with tab2:
-            fig2, ax2 = plt.subplots(figsize=(10, 5))
-            for i in range(num_h_core): 
-                ax2.plot(h_core_plt[:, i], label=f"C{i+1}")
-            ax2.legend(loc='best')
-            st.pyplot(fig2)
-
-        with tab3:
-            fig3, ax3 = plt.subplots(figsize=(10, 5))
-            for j in range(num_h_surf): 
-                ax3.plot(h_surf_plt[:, j], label=f"S{j+num_h_core+1}")
-            ax3.legend(loc='best')
-            st.pyplot(fig3)
-
-        # 6. PDF REPORT
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        pdf.set_font("Helvetica", 'B', 16)
-        pdf.cell(0, 10, "Valence-Pi Structural Alignment Report", ln=True, align='C')
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-            fig1.savefig(tmp.name, bbox_inches='tight')
-            pdf.image(tmp.name, x=10, w=180)
-
-        pdf_path = tempfile.mktemp(suffix=".pdf")
-        pdf.output(pdf_path)
-        with open(pdf_path, "rb") as f:
-            st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
