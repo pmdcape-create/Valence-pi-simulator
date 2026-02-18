@@ -82,13 +82,16 @@ if run_sim:
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    # 2. Run Engine
+    # 2. Run Engine (Positional Argument Version)
+    # We remove the "damping=" label to ensure it hits the correct slot in the function
     history_core, history_surface = run_simulation(
-        initial_core=BASELINE_CORE, initial_surface=BASELINE_SURFACE,
-        target_core=t_core, target_surface=t_surface,
-        steps=int(steps_input), damping=0.886
+        BASELINE_CORE, 
+        BASELINE_SURFACE,
+        t_core, 
+        t_surface,
+        int(steps_input), 
+        0.886
     )
-    
     # 3. Process Results
     all_final = np.concatenate([history_core[-1], history_surface[-1]])
     all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
