@@ -125,31 +125,33 @@ if run_sim:
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
         
-        # Robustly determine dimensions, handle ragged lists, and ensure numpy conversion
+        # Ultra-robust data homogenizer
         def prepare_plot_data(data):
             if data is None or len(data) == 0: 
                 return np.array([]), 0
             
-            try:
-                # First attempt: standard conversion
-                arr = np.asarray(data)
-            except ValueError:
-                # Fallback for "Ragged" data: force all rows to match the first row's length
-                target_len = len(data[0])
-                cleaned_data = []
-                for row in data:
-                    row_list = list(row)
-                    if len(row_list) > target_len:
-                        cleaned_data.append(row_list[:target_len])
-                    else:
-                        cleaned_data.append(row_list + [row_list[-1]] * (target_len - len(row_list)))
-                arr = np.array(cleaned_data)
-
-            # Determine dimensions
-            dims = arr.shape[1] if len(arr.shape) > 1 else 1
-            if len(arr.shape) == 1:
-                arr = arr.reshape(-1, 1)
-            return arr, dims
+            # 1. Ensure everything is a list of lists (homogenize scalars to sequences)
+            standardized = []
+            max_cols = 0
+            for step in data:
+                # Promotion: If it's a single number, make it a list [num]
+                row = list(step) if hasattr(step, "__iter__") else [step]
+                standardized.append(row)
+                max_cols = max(max_cols, len(row))
+            
+            # 2. Pad or Trim to match max_cols
+            cleaned_data = []
+            for row in standardized:
+                if len(row) < max_cols:
+                    # Pad with the last value in that row, or 0 if empty
+                    pad_val = row[-1] if len(row) > 0 else 0
+                    cleaned_data.append(row + [pad_val] * (max_cols - len(row)))
+                else:
+                    cleaned_data.append(row[:max_cols])
+            
+            # 3. Final conversion to safe NumPy array
+            arr = np.array(cleaned_data)
+            return arr, max_cols
 
         h_core_plt, num_history_core = prepare_plot_data(history_core)
         h_surf_plt, num_history_surf = prepare_plot_data(history_surface)
