@@ -82,21 +82,17 @@ if run_sim:
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    # 2. Run Engine (Corrected positional argument sequence)
-    # The error suggests the function doesn't recognize the previous format.
-    # We will pass exactly what the radial_engine/simulation.py usually expects:
+    # 2. Run Engine (Robust Multi-Signature Support)
     try:
+        # First attempt: The lean 4-argument signature confirmed by your logs
         history_core, history_surface = run_simulation(
-            BASELINE_CORE,      # initial_core
-            BASELINE_SURFACE,   # initial_surface
-            t_core,             # target_core
-            t_surface,          # target_surface
-            int(steps_input),   # steps
-            0.886               # damping
+            BASELINE_CORE, 
+            BASELINE_SURFACE, 
+            t_core, 
+            t_surface
         )
-    except Exception as e:
-        # If that fails, it likely means your engine version expects 
-        # a single target array instead of two.
+    except TypeError:
+        # Fallback: The 5-argument combined target version
         target_combined = np.concatenate([t_core, t_surface])
         history_core, history_surface = run_simulation(
             BASELINE_CORE,
@@ -105,13 +101,15 @@ if run_sim:
             int(steps_input),
             0.886
         )
+    except Exception as e:
+        st.error(f"Simulation Engine Error: {e}")
+        st.stop()
 
-    # 3. Process Results
+    # 3. Process Results (Rest of the code continues normally...)
     all_final = np.concatenate([history_core[-1], history_surface[-1]])
     all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
     deltas = all_final - all_initial
     labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+8}" for i in range(N_SURFACE)]
-
     # 4. TOP IMPACT INSPECTOR (Semantic Highlights)
     st.header("Human-Centric Interpretation")
     impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
