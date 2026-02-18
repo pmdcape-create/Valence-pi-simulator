@@ -82,40 +82,34 @@ if run_sim:
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    # 2. Run Engine (Robust Multi-Signature Support)
+    # 2. Run Engine (Corrected Try/Except Syntax)
     try:
-        # First attempt: The lean 4-argument signature confirmed by your logs
+        # Based on your logs, the engine only accepts 4 positional arguments
         history_core, history_surface = run_simulation(
             BASELINE_CORE, 
             BASELINE_SURFACE, 
             t_core, 
             t_surface
         )
-    except TypeError:
-        # Fallback: The 5/6-argument version
+    except Exception as e:
+        st.error(f"Simulation Engine Error: {e}")
+        st.info("Attempting fallback with combined targets...")
         try:
             target_combined = np.concatenate([t_core, t_surface])
             history_core, history_surface = run_simulation(
-                BASELINE_CORE,
-                BASELINE_SURFACE,
-                target_combined,
-                int(steps_input),
-                0.886
+                BASELINE_CORE, BASELINE_SURFACE, target_combined
             )
-        except Exception as e:
-            st.error(f"Fallback Simulation failed: {e}")
+        except Exception as e2:
+            st.error(f"Fallback failed: {e2}")
             st.stop()
-    except Exception as e:
-        st.error(f"Primary Simulation failed: {e}")
-        st.stop()
 
-    # --- SAFETY CHECK ---
-    # Ensure history arrays are not empty/zero-dimensional before processing
+    # --- SAFETY GATE: Prevent 'Zero-Dimensional' Error ---
     if history_core is None or len(history_core) == 0:
-        st.error("Simulation returned no data. Check your radial_engine logic.")
+        st.error("The simulation returned no data. Please check your engine configuration.")
         st.stop()
 
     # 3. Process Results
+    # history_core[-1] extracts the final state of the simulation
     all_final = np.concatenate([history_core[-1], history_surface[-1]])
     all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
     deltas = all_final - all_initial
