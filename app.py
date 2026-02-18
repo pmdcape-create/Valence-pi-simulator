@@ -88,24 +88,25 @@ if run_sim:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
 
-    # --- SAFETY GATE ---
+   # --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
         # 3. Process Results
-        # Force 1D shape to prevent the "zero-dimensional" ValueError
-        core_final = np.atleast_1d(history_core[-1])
-        surf_final = np.atleast_1d(history_surface[-1])
+        # Force everything to be a flat 1D array to stop the ValueError
+        core_final = np.atleast_1d(history_core[-1]).flatten()
+        surf_final = np.atleast_1d(history_surface[-1]).flatten()
         
-        # Now these can safely be concatenated
+        # Concatenate now has two perfectly flat 1D arrays to work with
         all_final = np.concatenate([core_final, surf_final])
         
+        # Do the same for initial baselines
         all_initial = np.concatenate([
-            np.atleast_1d(BASELINE_CORE), 
-            np.atleast_1d(BASELINE_SURFACE)
+            np.atleast_1d(BASELINE_CORE).flatten(), 
+            np.atleast_1d(BASELINE_SURFACE).flatten()
         ])
         
         deltas = all_final - all_initial
         
-        # Use the actual length of the returned data for labels
+        # Labels logic (dynamic based on actual data length)
         labels = [f"C{i+1}" for i in range(len(core_final))] + \
                  [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
         
