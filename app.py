@@ -81,17 +81,32 @@ if run_sim:
     # 1. Prepare Target Data
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
+    
+    # Combine targets into one array if your engine expects a single 'target' input
+    # Many versions of the radial_engine require: (initial_c, initial_s, target_combined, steps, damping)
+    target_combined = np.concatenate([t_core, t_surface])
 
-    # 2. Run Engine (Positional Argument Version)
-    # We remove the "damping=" label to ensure it hits the correct slot in the function
-    history_core, history_surface = run_simulation(
-        BASELINE_CORE, 
-        BASELINE_SURFACE,
-        t_core, 
-        t_surface,
-        int(steps_input), 
-        0.886
-    )
+    # 2. Run Engine (Attempting the most common positional signature)
+    try:
+        # Standard signature: initial_core, initial_surface, target_core, target_surface, steps, damping
+        history_core, history_surface = run_simulation(
+            BASELINE_CORE, 
+            BASELINE_SURFACE, 
+            t_core, 
+            t_surface, 
+            int(steps_input), 
+            0.886
+        )
+    except TypeError:
+        # Fallback signature: initial_core, initial_surface, target_combined, steps, damping
+        # This is used in some versions of the Valence-Pi engine
+        history_core, history_surface = run_simulation(
+            BASELINE_CORE, 
+            BASELINE_SURFACE, 
+            target_combined, 
+            int(steps_input), 
+            0.886
+        )
     # 3. Process Results
     all_final = np.concatenate([history_core[-1], history_surface[-1]])
     all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
