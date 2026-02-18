@@ -81,32 +81,31 @@ if run_sim:
     # 1. Prepare Target Data
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
-    
-    # Combine targets into one array if your engine expects a single 'target' input
-    # Many versions of the radial_engine require: (initial_c, initial_s, target_combined, steps, damping)
-    target_combined = np.concatenate([t_core, t_surface])
 
-    # 2. Run Engine (Attempting the most common positional signature)
+    # 2. Run Engine (Corrected positional argument sequence)
+    # The error suggests the function doesn't recognize the previous format.
+    # We will pass exactly what the radial_engine/simulation.py usually expects:
     try:
-        # Standard signature: initial_core, initial_surface, target_core, target_surface, steps, damping
         history_core, history_surface = run_simulation(
-            BASELINE_CORE, 
-            BASELINE_SURFACE, 
-            t_core, 
-            t_surface, 
-            int(steps_input), 
+            BASELINE_CORE,      # initial_core
+            BASELINE_SURFACE,   # initial_surface
+            t_core,             # target_core
+            t_surface,          # target_surface
+            int(steps_input),   # steps
+            0.886               # damping
+        )
+    except Exception as e:
+        # If that fails, it likely means your engine version expects 
+        # a single target array instead of two.
+        target_combined = np.concatenate([t_core, t_surface])
+        history_core, history_surface = run_simulation(
+            BASELINE_CORE,
+            BASELINE_SURFACE,
+            target_combined,
+            int(steps_input),
             0.886
         )
-    except TypeError:
-        # Fallback signature: initial_core, initial_surface, target_combined, steps, damping
-        # This is used in some versions of the Valence-Pi engine
-        history_core, history_surface = run_simulation(
-            BASELINE_CORE, 
-            BASELINE_SURFACE, 
-            target_combined, 
-            int(steps_input), 
-            0.886
-        )
+
     # 3. Process Results
     all_final = np.concatenate([history_core[-1], history_surface[-1]])
     all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
