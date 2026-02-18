@@ -85,9 +85,9 @@ if run_sim:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
 
-    # --- SAFETY GATE (Fixes line 66 error) ---
+    # --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
-        # 3. Process Results
+        # 3. Process Results (Flatten and Align for Metrics)
         core_final = np.atleast_1d(history_core[-1]).flatten()
         surf_final = np.atleast_1d(history_surface[-1]).flatten()
         
@@ -97,7 +97,6 @@ if run_sim:
             np.atleast_1d(BASELINE_SURFACE).flatten()
         ])
 
-        # Align lengths
         min_len = min(len(all_final), len(all_initial))
         all_final_aligned = all_final[:min_len]
         all_initial_aligned = all_initial[:min_len]
@@ -120,63 +119,60 @@ if run_sim:
                     st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
                     st.info(f"**Function:** {guide.get('physical_function', 'N/A')}")
 
-        # 5. GRAPHS DASHBOARD
+        # 5. GRAPHS DASHBOARD (Hardened against ragged arrays)
         st.markdown("---")
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
         
-        # Ultra-robust data homogenizer
         def prepare_plot_data(data):
             if data is None or len(data) == 0: 
                 return np.array([]), 0
             
-            # 1. Ensure everything is a list of lists (homogenize scalars to sequences)
+            # 1. Standardize everything to a list of floats
             standardized = []
-            max_cols = 0
             for step in data:
-                # Promotion: If it's a single number, make it a list [num]
-                row = list(step) if hasattr(step, "__iter__") else [step]
-                standardized.append(row)
-                max_cols = max(max_cols, len(row))
+                if hasattr(step, "__iter__") and not isinstance(step, (str, bytes)):
+                    standardized.append([float(x) for x in step])
+                else:
+                    standardized.append([float(step)])
             
-            # 2. Pad or Trim to match max_cols
-            cleaned_data = []
+            # 2. Find maximum column width in the simulation history
+            max_cols = max(len(row) for row in standardized)
+            
+            # 3. Force alignment (pad with last value or trim)
+            aligned = []
             for row in standardized:
                 if len(row) < max_cols:
-                    # Pad with the last value in that row, or 0 if empty
-                    pad_val = row[-1] if len(row) > 0 else 0
-                    cleaned_data.append(row + [pad_val] * (max_cols - len(row)))
+                    pad_val = row[-1] if len(row) > 0 else 0.0
+                    aligned.append(row + [pad_val] * (max_cols - len(row)))
                 else:
-                    cleaned_data.append(row[:max_cols])
+                    aligned.append(row[:max_cols])
             
-            # 3. Final conversion to safe NumPy array
-            arr = np.array(cleaned_data)
-            return arr, max_cols
+            return np.array(aligned), max_cols
 
-        h_core_plt, num_history_core = prepare_plot_data(history_core)
-        h_surf_plt, num_history_surf = prepare_plot_data(history_surface)
+        h_core_plt, num_h_core = prepare_plot_data(history_core)
+        h_surf_plt, num_h_surf = prepare_plot_data(history_surface)
         
         with tab1:
             fig1, ax1 = plt.subplots(figsize=(10, 5))
-            for i in range(num_history_core): 
+            for i in range(num_h_core): 
                 ax1.plot(h_core_plt[:, i], label=f"C{i+1}")
-            for j in range(num_history_surf): 
-                ax1.plot(h_surf_plt[:, j], linestyle='--', label=f"S{j+num_history_core+1}")
-            
+            for j in range(num_h_surf): 
+                ax1.plot(h_surf_plt[:, j], linestyle='--', label=f"S{j+num_h_core+1}")
             ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
             st.pyplot(fig1)
 
         with tab2:
             fig2, ax2 = plt.subplots(figsize=(10, 5))
-            for i in range(num_history_core): 
+            for i in range(num_h_core): 
                 ax2.plot(h_core_plt[:, i], label=f"C{i+1}")
             ax2.legend(loc='best')
             st.pyplot(fig2)
 
         with tab3:
             fig3, ax3 = plt.subplots(figsize=(10, 5))
-            for j in range(num_history_surf): 
-                ax3.plot(h_surf_plt[:, j], label=f"S{j+num_history_core+1}")
+            for j in range(num_h_surf): 
+                ax3.plot(h_surf_plt[:, j], label=f"S{j+num_h_core+1}")
             ax3.legend(loc='best')
             st.pyplot(fig3)
 
@@ -195,5 +191,3 @@ if run_sim:
         pdf.output(pdf_path)
         with open(pdf_path, "rb") as f:
             st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
-    else:
-        st.error("The simulation completed but returned no data.")
