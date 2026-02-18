@@ -125,16 +125,24 @@ if run_sim:
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
         
+        # Robustly determine dimensions
+        def get_dims(data):
+            if data is None: return 0
+            return data.shape[1] if len(data.shape) > 1 else 1
+
+        num_history_core = get_dims(history_core)
+        num_history_surf = get_dims(history_surface)
+        
         with tab1:
             fig1, ax1 = plt.subplots(figsize=(10, 5))
-            # FIX: Only plot as many columns as history_core actually contains
-            num_history_core = history_core.shape[1]
-            num_history_surf = history_surface.shape[1]
-            
+            # Reshape if 1D to allow consistent indexing
+            h_core_plt = history_core if num_history_core > 1 else history_core.reshape(-1, 1)
+            h_surf_plt = history_surface if num_history_surf > 1 else history_surface.reshape(-1, 1)
+
             for i in range(num_history_core): 
-                ax1.plot(history_core[:, i], label=f"C{i+1}")
+                ax1.plot(h_core_plt[:, i], label=f"C{i+1}")
             for j in range(num_history_surf): 
-                ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+num_history_core+1}")
+                ax1.plot(h_surf_plt[:, j], linestyle='--', label=f"S{j+num_history_core+1}")
             
             ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
             st.pyplot(fig1)
@@ -142,14 +150,14 @@ if run_sim:
         with tab2:
             fig2, ax2 = plt.subplots(figsize=(10, 5))
             for i in range(num_history_core): 
-                ax2.plot(history_core[:, i], label=f"C{i+1}")
+                ax2.plot(h_core_plt[:, i], label=f"C{i+1}")
             ax2.legend(loc='best')
             st.pyplot(fig2)
 
         with tab3:
             fig3, ax3 = plt.subplots(figsize=(10, 5))
             for j in range(num_history_surf): 
-                ax3.plot(history_surface[:, j], label=f"S{j+num_history_core+1}")
+                ax3.plot(h_surf_plt[:, j], label=f"S{j+num_history_core+1}")
             ax3.legend(loc='best')
             st.pyplot(fig3)
 
