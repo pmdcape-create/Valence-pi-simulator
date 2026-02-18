@@ -125,15 +125,28 @@ if run_sim:
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
         
-        # Robustly determine dimensions and ensure data is a numpy array
+        # Robustly determine dimensions, handle ragged lists, and ensure numpy conversion
         def prepare_plot_data(data):
-            if data is None: 
+            if data is None or len(data) == 0: 
                 return np.array([]), 0
-            # Cast list to array so we can use .shape
-            arr = np.asarray(data)
-            # Determine how many columns (nodes) we have
+            
+            try:
+                # First attempt: standard conversion
+                arr = np.asarray(data)
+            except ValueError:
+                # Fallback for "Ragged" data: force all rows to match the first row's length
+                target_len = len(data[0])
+                cleaned_data = []
+                for row in data:
+                    row_list = list(row)
+                    if len(row_list) > target_len:
+                        cleaned_data.append(row_list[:target_len])
+                    else:
+                        cleaned_data.append(row_list + [row_list[-1]] * (target_len - len(row_list)))
+                arr = np.array(cleaned_data)
+
+            # Determine dimensions
             dims = arr.shape[1] if len(arr.shape) > 1 else 1
-            # Force to 2D matrix (steps, nodes) for consistent plotting
             if len(arr.shape) == 1:
                 arr = arr.reshape(-1, 1)
             return arr, dims
