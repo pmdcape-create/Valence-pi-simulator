@@ -125,20 +125,24 @@ if run_sim:
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
         
-        # Robustly determine dimensions
-        def get_dims(data):
-            if data is None: return 0
-            return data.shape[1] if len(data.shape) > 1 else 1
+        # Robustly determine dimensions and ensure data is a numpy array
+        def prepare_plot_data(data):
+            if data is None: 
+                return np.array([]), 0
+            # Cast list to array so we can use .shape
+            arr = np.asarray(data)
+            # Determine how many columns (nodes) we have
+            dims = arr.shape[1] if len(arr.shape) > 1 else 1
+            # Force to 2D matrix (steps, nodes) for consistent plotting
+            if len(arr.shape) == 1:
+                arr = arr.reshape(-1, 1)
+            return arr, dims
 
-        num_history_core = get_dims(history_core)
-        num_history_surf = get_dims(history_surface)
+        h_core_plt, num_history_core = prepare_plot_data(history_core)
+        h_surf_plt, num_history_surf = prepare_plot_data(history_surface)
         
         with tab1:
             fig1, ax1 = plt.subplots(figsize=(10, 5))
-            # Reshape if 1D to allow consistent indexing
-            h_core_plt = history_core if num_history_core > 1 else history_core.reshape(-1, 1)
-            h_surf_plt = history_surface if num_history_surf > 1 else history_surface.reshape(-1, 1)
-
             for i in range(num_history_core): 
                 ax1.plot(h_core_plt[:, i], label=f"C{i+1}")
             for j in range(num_history_surf): 
