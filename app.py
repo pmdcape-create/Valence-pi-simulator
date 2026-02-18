@@ -62,10 +62,32 @@ for i in range(N_SURFACE):
 
 run_sim = st.sidebar.button("Run Realignment Simulation")
 
-# --- SAFETY GATE ---
+# ==========================================
+# MAIN INTERFACE & LOGIC
+# ==========================================
+st.title("Valence-Pi Structural Simulator")
+st.caption(f"Status: {len(state_guides_data)} semantic states active.")
+
+if run_sim:
+    # 1. Capture Inputs from Sliders
+    t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
+    t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
+
+    # 2. Run Engine (Correctly Indented)
+    try:
+        history_core, history_surface = run_simulation(
+            BASELINE_CORE, 
+            BASELINE_SURFACE, 
+            t_core, 
+            t_surface
+        )
+    except Exception as e:
+        st.error(f"Simulation Engine Error: {e}")
+        st.stop()
+
+    # --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
-        # 3. Process Results
-        # STEP A: Define the variables first (Flattening)
+        # 3. Process Results (Flatten and Align)
         core_final = np.atleast_1d(history_core[-1]).flatten()
         surf_final = np.atleast_1d(history_surface[-1]).flatten()
         
@@ -75,15 +97,14 @@ run_sim = st.sidebar.button("Run Realignment Simulation")
             np.atleast_1d(BASELINE_SURFACE).flatten()
         ])
 
-        # STEP B: Align lengths (The fix for Line 107)
+        # Resolve length mismatches before subtraction
         min_len = min(len(all_final), len(all_initial))
         all_final_aligned = all_final[:min_len]
         all_initial_aligned = all_initial[:min_len]
         
-        # Now the subtraction is safe
         deltas = all_final_aligned - all_initial_aligned
         
-        # STEP C: Define Labels
+        # Define dynamic labels
         full_labels = [f"C{i+1}" for i in range(len(core_final))] + \
                       [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
         labels = full_labels[:min_len]
@@ -142,6 +163,5 @@ run_sim = st.sidebar.button("Run Realignment Simulation")
             st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
 
     else:
-        # This handles the case where history_core is empty
-        st.error("The simulation completed but returned no data. Please verify the BASELINE values in config.py.")
+        st.error("The simulation completed but returned no data.")
         st.stop()
