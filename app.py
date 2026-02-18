@@ -73,7 +73,7 @@ if run_sim:
     t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
     t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
 
-    # Initialize variables
+    # Initialize variables to None
     history_core, history_surface = None, None
 
     # 2. Run Engine
@@ -88,9 +88,9 @@ if run_sim:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
 
-    # --- SAFETY GATE ---
+    # --- SAFETY GATE: This prevents line 94 from crashing ---
     if history_core is not None and len(history_core) > 0:
-        # 3. Process Results (Must be inside this IF block)
+        # 3. Process Results (Everything below is now SAFE)
         all_final = np.concatenate([history_core[-1], history_surface[-1]])
         all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
         deltas = all_final - all_initial
@@ -118,7 +118,7 @@ if run_sim:
             fig1, ax1 = plt.subplots(figsize=(10, 5))
             for i in range(N_CORE): ax1.plot(history_core[:, i], label=f"C{i+1}")
             for j in range(N_SURFACE): ax1.plot(history_surface[:, j], linestyle='--', label=f"S{j+N_CORE+1}")
-            ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small', ncol=1)
+            ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
             st.pyplot(fig1)
 
         with tab2:
@@ -150,5 +150,6 @@ if run_sim:
             st.download_button("📥 Download Research Report", data=f.read(), file_name="ValencePi_Report.pdf")
 
     else:
-        st.error("No simulation data generated.")
+        # This handles the case where history_core is empty
+        st.error("The simulation completed but returned no data. Please verify the BASELINE values in config.py.")
         st.stop()
