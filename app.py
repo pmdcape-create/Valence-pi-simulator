@@ -88,14 +88,27 @@ if run_sim:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
 
-    # --- SAFETY GATE: This prevents line 94 from crashing ---
+    # --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
-        # 3. Process Results (Everything below is now SAFE)
-        all_final = np.concatenate([history_core[-1], history_surface[-1]])
-        all_initial = np.concatenate([BASELINE_CORE, BASELINE_SURFACE])
+        # 3. Process Results
+        # We use np.atleast_1d to ensure scalars are treated as arrays
+        core_final = np.atleast_1d(history_core[-1])
+        surf_final = np.atleast_1d(history_surface[-1])
+        
+        # Now concatenation will not fail with "zero-dimensional" error
+        all_final = np.concatenate([core_final, surf_final])
+        
+        all_initial = np.concatenate([
+            np.atleast_1d(BASELINE_CORE), 
+            np.atleast_1d(BASELINE_SURFACE)
+        ])
+        
         deltas = all_final - all_initial
-        labels = [f"C{i+1}" for i in range(N_CORE)] + [f"S{i+N_CORE+1}" for i in range(N_SURFACE)]
+        # Ensure labels match the total length of all_final
+        labels = [f"C{i+1}" for i in range(len(core_final))] + \
+                 [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
 
+        
         # 4. THE INSPECTOR
         st.header("Human-Centric Interpretation")
         impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
