@@ -81,45 +81,50 @@ if run_sim:
             t_core, 
             t_surface
         )
+        
+        # --- SAFETY GATE (Properly Nested) ---
+        if history_core is not None and len(history_core) > 0:
+            # 3. Process Results (Indented inside Safety Gate)
+            core_final = np.atleast_1d(history_core[-1]).flatten()
+            surf_final = np.atleast_1d(history_surface[-1]).flatten()
+            
+            all_final = np.concatenate([core_final, surf_final])
+            all_initial = np.concatenate([
+                np.atleast_1d(BASELINE_CORE).flatten(), 
+                np.atleast_1d(BASELINE_SURFACE).flatten()
+            ])
+
+            min_len = min(len(all_final), len(all_initial))
+            all_final_aligned = all_final[:min_len]
+            all_initial_aligned = all_initial[:min_len]
+            deltas = all_final_aligned - all_initial_aligned
+            
+            full_labels = [f"C{i+1}" for i in range(len(core_final))] + \
+                          [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
+            labels = full_labels[:min_len]
+
+            st.success("Realignment Simulation Complete.")
+
+            # 4. THE INSPECTOR (Moved OUT of 'except' and INTO the success gate)
+            st.header("Human-Centric Interpretation")
+            impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
+            cols = st.columns(3)
+            for i, idx in enumerate(impact_indices):
+                guide = get_state_guide(idx + 1)
+                with cols[i]:
+                    st.metric(label=labels[idx], value=f"{all_final[idx]:.2f}", delta=f"{deltas[idx]:.3f}")
+                    if guide:
+                        st.write(f"**Mood:** {guide.get('mood_description', 'N/A')}")
+                        st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
+                        st.info(f"**Function:** {guide.get('physical_function', 'N/A')}")
+        else:
+            st.warning("Simulation produced no history data.")
+
     except Exception as e:
         st.error(f"Simulation Engine Error: {e}")
         st.stop()
 
-    # --- SAFETY GATE ---
-    if history_core is not None and len(history_core) > 0:
-        # 3. Process Results (Flatten and Align for Metrics)
-        core_final = np.atleast_1d(history_core[-1]).flatten()
-        surf_final = np.atleast_1d(history_surface[-1]).flatten()
-        
-        all_final = np.concatenate([core_final, surf_final])
-        all_initial = np.concatenate([
-            np.atleast_1d(BASELINE_CORE).flatten(), 
-            np.atleast_1d(BASELINE_SURFACE).flatten()
-        ])
-
-        min_len = min(len(all_final), len(all_initial))
-        all_final_aligned = all_final[:min_len]
-        all_initial_aligned = all_initial[:min_len]
-        deltas = all_final_aligned - all_initial_aligned
-        
-        full_labels = [f"C{i+1}" for i in range(len(core_final))] + \
-                      [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
-        labels = full_labels[:min_len]
-                
-        # 4. THE INSPECTOR
-        st.header("Human-Centric Interpretation")
-        impact_indices = np.argsort(np.abs(deltas))[-3:][::-1]
-        cols = st.columns(3)
-        for i, idx in enumerate(impact_indices):
-            guide = get_state_guide(idx + 1)
-            with cols[i]:
-                st.metric(label=labels[idx], value=f"{all_final[idx]:.2f}", delta=f"{deltas[idx]:.3f}")
-                if guide:
-                    st.write(f"**Mood:** {guide.get('mood_description', 'N/A')}")
-                    st.write(f"**Keywords:** {', '.join(guide.get('keywords', []))}")
-                    st.info(f"**Function:** {guide.get('physical_function', 'N/A')}")
-
-        # 5. GRAPHS DASHBOARD (Hardened against Deep Nesting)
+   # 5. GRAPHS DASHBOARD (Hardened against Deep Nesting)
         st.markdown("---")
         st.header("Visual Field Analysis")
         tab1, tab2, tab3 = st.tabs(["Combined Trajectory", "Core Stability", "Surface Alignment"])
