@@ -62,54 +62,31 @@ for i in range(N_SURFACE):
 
 run_sim = st.sidebar.button("Run Realignment Simulation")
 
-# ==========================================
-# MAIN INTERFACE
-# ==========================================
-st.title("Valence-Pi Structural Simulator")
-st.caption(f"Status: {len(state_guides_data)} semantic states active.")
-
-if run_sim:
-    # 1. Capture Inputs
-    t_core = np.array([st.session_state[f"core_{i}"] for i in range(N_CORE)])
-    t_surface = np.array([st.session_state[f"surface_{i}"] for i in range(N_SURFACE)])
-
-    # Initialize variables to None
-    history_core, history_surface = None, None
-
-    # 2. Run Engine
-    try:
-        history_core, history_surface = run_simulation(
-            BASELINE_CORE, 
-            BASELINE_SURFACE, 
-            t_core, 
-            t_surface
-        )
-    except Exception as e:
-        st.error(f"Simulation Engine Error: {e}")
-        st.stop()
-
-   # --- SAFETY GATE ---
+# --- SAFETY GATE ---
     if history_core is not None and len(history_core) > 0:
         # 3. Process Results
-        # Force everything to be a flat 1D array to stop the ValueError
+        # STEP A: Define the variables first (Flattening)
         core_final = np.atleast_1d(history_core[-1]).flatten()
         surf_final = np.atleast_1d(history_surface[-1]).flatten()
         
-        # Concatenate now has two perfectly flat 1D arrays to work with
         all_final = np.concatenate([core_final, surf_final])
-        
-        # Do the same for initial baselines
         all_initial = np.concatenate([
             np.atleast_1d(BASELINE_CORE).flatten(), 
             np.atleast_1d(BASELINE_SURFACE).flatten()
         ])
+
+        # STEP B: Align lengths (The fix for Line 107)
+        min_len = min(len(all_final), len(all_initial))
+        all_final_aligned = all_final[:min_len]
+        all_initial_aligned = all_initial[:min_len]
         
-        deltas = all_final - all_initial
+        # Now the subtraction is safe
+        deltas = all_final_aligned - all_initial_aligned
         
-        # Labels logic (dynamic based on actual data length)
-        labels = [f"C{i+1}" for i in range(len(core_final))] + \
-                 [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
-        
+        # STEP C: Define Labels
+        full_labels = [f"C{i+1}" for i in range(len(core_final))] + \
+                      [f"S{i+len(core_final)+1}" for i in range(len(surf_final))]
+        labels = full_labels[:min_len]
                 
         # 4. THE INSPECTOR
         st.header("Human-Centric Interpretation")
